@@ -14,6 +14,11 @@ const reportSchema = new mongoose.Schema(
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
     state: { type: String, required: true, index: true },
     area: { type: String, index: true },
+    upvotes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    coordinates: {
+      lat: { type: Number, default: null },
+      lng: { type: Number, default: null },
+    },
   },
   { timestamps: true }
 );

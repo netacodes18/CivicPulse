@@ -46,6 +46,12 @@ const Navbar = () => {
                     My Reports
                   </Link>
                   <Link
+                    to="/community"
+                    className="text-xs uppercase tracking-widest text-charcoal/70 hover:text-charcoal hover:border-b hover:border-charcoal pb-1 transition-all duration-150 font-medium"
+                  >
+                    Community
+                  </Link>
+                  <Link
                     to="/profile"
                     className="text-xs uppercase tracking-widest text-charcoal/70 hover:text-charcoal hover:border-b hover:border-charcoal pb-1 transition-all duration-150 font-medium"
                   >
@@ -151,6 +157,13 @@ const Navbar = () => {
                     className="text-xs uppercase tracking-widest text-charcoal/70 hover:text-charcoal py-1.5 font-medium"
                   >
                     My Reports
+                  </Link>
+                  <Link
+                    to="/community"
+                    onClick={() => setIsOpen(false)}
+                    className="text-xs uppercase tracking-widest text-charcoal/70 hover:text-charcoal py-1.5 font-medium"
+                  >
+                    Community
                   </Link>
                   <Link
                     to="/profile"

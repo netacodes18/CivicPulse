@@ -27,7 +27,11 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-// Multer instance
-const upload = multer({ storage, fileFilter });
+// Multer instance with 5MB file size limit
+const upload = multer({
+  storage,
+  fileFilter,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max
+});
 
 module.exports = upload;

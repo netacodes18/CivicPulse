@@ -7,8 +7,13 @@ const {
   getUserProfile,
   createReport,
   getMyReports,
+  getCommunityReports,
+  getReportById,
   updateReport,
   deleteReport,
+  toggleUpvote,
+  createComment,
+  getComments,
 } = require("../controllers/userController");
 
 // 🔥 PROFILE
@@ -33,6 +38,20 @@ router.get(
   getMyReports
 );
 
+// 🔥 COMMUNITY FEED (all reports in user's state)
+router.get(
+  "/community",
+  authMiddleware,
+  getCommunityReports
+);
+
+// 🔥 GET SINGLE REPORT (detail page)
+router.get(
+  "/report/:id",
+  authMiddleware,
+  getReportById
+);
+
 // 🔥 UPDATE REPORT
 router.put(
   "/report/:id",
@@ -45,6 +64,27 @@ router.delete(
   "/report/:id",
   authMiddleware,
   deleteReport
+);
+
+// 🔥 UPVOTE TOGGLE
+router.post(
+  "/report/:id/upvote",
+  authMiddleware,
+  toggleUpvote
+);
+
+// 🔥 CREATE COMMENT
+router.post(
+  "/report/:id/comment",
+  authMiddleware,
+  createComment
+);
+
+// 🔥 GET COMMENTS
+router.get(
+  "/report/:id/comments",
+  authMiddleware,
+  getComments
 );
 
 module.exports = router;

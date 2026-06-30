@@ -1,4 +1,5 @@
 const Report = require("../models/Report");
+const Comment = require("../models/Comment");
 
 exports.getUserProfile = (req, res) => {
   res.json({
@@ -15,7 +16,7 @@ exports.getUserProfile = (req, res) => {
 
 exports.createReport = async (req, res) => {
   try {
-    const { title, description, category } = req.body;
+    const { title, description, category, lat, lng } = req.body;
 
     // Use filename to avoid Windows backslash issues
    const filename = req.file?.filename || "";
@@ -34,6 +35,7 @@ exports.createReport = async (req, res) => {
       user: req.user.id,
       state: req.user.state,
       area: req.user.area,
+      coordinates: lat && lng ? { lat: parseFloat(lat), lng: parseFloat(lng) } : undefined,
     });
 
     await report.save();
@@ -58,6 +60,48 @@ exports.getMyReports = async (req, res) => {
     res
       .status(500)
       .json({ message: "Error fetching reports", error: err.message });
+  }
+};
+
+// GET all reports in the user's state (community feed)
+exports.getCommunityReports = async (req, res) => {
+  try {
+    const { area } = req.query;
+    const filter = { state: req.user.state };
+    if (area) filter.area = area;
+
+    const reports = await Report.find(filter)
+      .sort({ createdAt: -1 })
+      .populate("user", "username state area");
+
+    res.json({ reports });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ message: "Error fetching community reports", error: err.message });
+  }
+};
+
+// GET single report by ID (for detail page)
+exports.getReportById = async (req, res) => {
+  try {
+    const report = await Report.findById(req.params.id)
+      .populate("user", "username state area")
+      .populate("upvotes", "username");
+
+    if (!report) {
+      return res.status(404).json({ message: "Report not found" });
+    }
+
+    const comments = await Comment.find({ report: req.params.id })
+      .populate("user", "username")
+      .sort({ createdAt: -1 });
+
+    res.json({ report, comments });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ message: "Error fetching report", error: err.message });
   }
 };
 
@@ -100,10 +144,92 @@ exports.deleteReport = async (req, res) => {
         .json({ message: "Report not found or unauthorized" });
     }
 
+    // Also delete associated comments
+    await Comment.deleteMany({ report: req.params.id });
+
     res.json({ message: "Report deleted successfully" });
   } catch (err) {
     res
       .status(500)
       .json({ message: "Error deleting report", error: err.message });
+  }
+};
+
+// POST toggle upvote on a report
+exports.toggleUpvote = async (req, res) => {
+  try {
+    const report = await Report.findById(req.params.id);
+    if (!report) {
+      return res.status(404).json({ message: "Report not found" });
+    }
+
+    const userId = req.user.id;
+    const index = report.upvotes.indexOf(userId);
+
+    if (index === -1) {
+      report.upvotes.push(userId);
+    } else {
+      report.upvotes.splice(index, 1);
+    }
+
+    await report.save();
+    res.json({
+      message: index === -1 ? "Upvoted" : "Upvote removed",
+      upvoteCount: report.upvotes.length,
+      upvoted: index === -1,
+    });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ message: "Error toggling upvote", error: err.message });
+  }
+};
+
+// POST create a comment on a report
+exports.createComment = async (req, res) => {
+  try {
+    const { text } = req.body;
+
+    if (!text || text.trim().length === 0) {
+      return res.status(400).json({ message: "Comment text is required" });
+    }
+
+    if (text.trim().length > 1000) {
+      return res.status(400).json({ message: "Comment must be under 1000 characters" });
+    }
+
+    const report = await Report.findById(req.params.id);
+    if (!report) {
+      return res.status(404).json({ message: "Report not found" });
+    }
+
+    const comment = await Comment.create({
+      report: req.params.id,
+      user: req.user.id,
+      text: text.trim(),
+    });
+
+    const populated = await comment.populate("user", "username");
+
+    res.status(201).json({ message: "Comment added", comment: populated });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ message: "Error adding comment", error: err.message });
+  }
+};
+
+// GET comments for a report
+exports.getComments = async (req, res) => {
+  try {
+    const comments = await Comment.find({ report: req.params.id })
+      .populate("user", "username")
+      .sort({ createdAt: -1 });
+
+    res.json({ comments });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ message: "Error fetching comments", error: err.message });
   }
 };

@@ -54,18 +54,36 @@ exports.updateReportStatus = async (req, res) => {
 };
 exports.getAdminDashboardStats = async (req, res) => {
   try {
-    const total = await Report.countDocuments();
-    const pending = await Report.countDocuments({ status: "pending" });
-    const inProgress = await Report.countDocuments({ status: "in-progress" });
-    const resolved = await Report.countDocuments({ status: "resolved" });
+    // Optimized: single aggregation pipeline instead of 4 separate queries
+    const pipeline = await Report.aggregate([
+      {
+        $group: {
+          _id: null,
+          total: { $sum: 1 },
+          pending: { $sum: { $cond: [{ $eq: ["$status", "pending"] }, 1, 0] } },
+          inProgress: { $sum: { $cond: [{ $eq: ["$status", "in-progress"] }, 1, 0] } },
+          resolved: { $sum: { $cond: [{ $eq: ["$status", "resolved"] }, 1, 0] } },
+        },
+      },
+    ]);
 
-    res.json({ total, pending, inProgress, resolved });
+    const stats = pipeline[0] || { total: 0, pending: 0, inProgress: 0, resolved: 0 };
+    delete stats._id;
+
+    // Fetch 5 most recent reports for the dashboard feed
+    const recentReports = await Report.find()
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .populate("user", "username state area");
+
+    res.json({ stats, recentReports });
   } catch (err) {
     res
       .status(500)
       .json({ message: "Failed to get stats", error: err.message });
   }
 };
+
 
 // DELETE any report (admin)
 exports.deleteAnyReport = async (req, res) => {

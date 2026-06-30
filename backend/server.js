@@ -46,6 +46,32 @@ app.use(express.json());
 app.use("/uploads", express.static(uploadsDir));
 
 // ===================================================
+// Rate Limiting (Security)
+// ===================================================
+const rateLimit = require("express-rate-limit");
+
+// Strict rate limit for authentication endpoints
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 15, // 15 requests per window
+  message: { message: "Too many attempts. Please try again after 15 minutes." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// General rate limit for all API endpoints
+const generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: { message: "Too many requests. Please slow down." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.use("/api/auth", authLimiter);
+app.use("/api", generalLimiter);
+
+// ===================================================
 // API Routes
 // ===================================================
 app.use("/api/auth", authRoutes);

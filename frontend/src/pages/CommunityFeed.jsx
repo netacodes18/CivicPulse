@@ -3,7 +3,6 @@ import api from "../api/axios";
 import { AuthContext } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import {
-  FileText,
   Calendar,
   MapPin,
   Layers,
@@ -14,35 +13,53 @@ import {
   Wrench,
   CheckCircle,
   ThumbsUp,
-  MessageCircle
+  MessageCircle,
+  Users,
+  User,
 } from "lucide-react";
 
-const AllReports = () => {
+const CommunityFeed = () => {
   const { user, token } = useContext(AuthContext);
   const [reports, setReports] = useState([]);
   const [filterArea, setFilterArea] = useState("");
   const [loading, setLoading] = useState(true);
+  const [upvotingId, setUpvotingId] = useState(null);
   const navigate = useNavigate();
 
   const fetchReports = async () => {
     try {
-      const res = await api.get("/api/admin/reports", {
+      const res = await api.get("/api/user/community", {
         headers: { Authorization: `Bearer ${token}` },
         params: filterArea ? { area: filterArea } : {},
       });
       setReports(Array.isArray(res.data.reports) ? res.data.reports : []);
     } catch (err) {
-      console.error("Admin report fetch error", err);
+      console.error("Community feed fetch error", err);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (token && user?.role === "admin") {
-      fetchReports();
+    if (token) fetchReports();
+  }, [filterArea, token]);
+
+  const handleUpvote = async (reportId) => {
+    if (upvotingId) return;
+    setUpvotingId(reportId);
+    try {
+      await api.post(
+        `/api/user/report/${reportId}/upvote`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      await fetchReports();
+    } catch (err) {
+      console.error("Upvote error", err);
+    } finally {
+      setUpvotingId(null);
     }
-  }, [filterArea, token, user]);
+  };
 
   const getStatusDetails = (status) => {
     switch (status) {
@@ -64,37 +81,46 @@ const AllReports = () => {
     }
   };
 
+  const hasUpvoted = (report) =>
+    report.upvotes?.some(
+      (u) => (typeof u === "object" ? u._id : u) === user?.id
+    );
+
   return (
     <div className="min-h-[calc(100vh-73px)] bg-[#FDFBF7] py-12 px-6">
       <div className="max-w-4xl mx-auto">
-        
         {/* Header Block */}
         <div className="text-center mb-10">
           <div className="inline-flex items-center justify-center w-12 h-12 bg-forest/5 border border-forest/15 text-forest mb-4">
-            <span className="text-xs font-bold tracking-widest uppercase">adm.</span>
+            <Users size={18} />
           </div>
           <h1 className="text-3xl font-light text-charcoal tracking-tight mb-2">
-            all logged <span className="font-semibold italic text-forest">anomalies</span>
+            community{" "}
+            <span className="font-semibold italic text-forest">feed</span>
           </h1>
           <p className="text-charcoal/60 text-xs tracking-wide">
-            master audit control panel for spatial restoration progress
+            browse civic concerns reported by residents across{" "}
+            <span className="font-bold capitalize">{user?.state || "your state"}</span>.
+            support issues that matter to you.
           </p>
         </div>
 
         {/* Filter Input */}
         <div className="bg-white border border-charcoal/10 p-6 mb-8 shadow-sm relative">
           <div className="absolute top-0 left-0 w-full h-0.5 bg-forest"></div>
-          
           <div className="flex items-center space-x-3">
             <Filter size={16} className="text-sage" />
             <div className="flex-1 flex flex-col">
-              <label htmlFor="area-filter" className="text-[9px] uppercase tracking-widest text-charcoal/60 font-bold mb-1">
-                Filter by Local Area Name
+              <label
+                htmlFor="area-filter"
+                className="text-[9px] uppercase tracking-widest text-charcoal/60 font-bold mb-1"
+              >
+                Filter by Area
               </label>
               <input
                 id="area-filter"
                 type="text"
-                placeholder="Type area name (e.g. ward 12, indira nagar) to narrow down..."
+                placeholder="Type area name to narrow down..."
                 className="w-full border-b border-charcoal/20 focus:border-forest bg-transparent rounded-none py-2 px-1 text-charcoal text-sm outline-none transition-colors placeholder-charcoal/30"
                 value={filterArea}
                 onChange={(e) => setFilterArea(e.target.value.toLowerCase())}
@@ -111,7 +137,7 @@ const AllReports = () => {
             <div className="py-20 text-center flex flex-col items-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-forest mb-4"></div>
               <p className="text-xs uppercase tracking-widest text-charcoal/50 font-bold">
-                Resolving data logs...
+                Loading community reports...
               </p>
             </div>
           ) : reports.length === 0 ? (
@@ -120,18 +146,19 @@ const AllReports = () => {
                 <FolderOpen size={20} />
               </div>
               <h3 className="text-sm font-semibold uppercase tracking-widest text-charcoal mb-2">
-                No reports found
+                No community reports
               </h3>
               <p className="text-xs text-charcoal/60 leading-relaxed">
                 {filterArea
-                  ? "There are no logged concerns matching that specific area name. Try adjusting your query."
-                  : "No public concerns have been registered in the database yet."}
+                  ? "No reports match that area. Try adjusting your filter."
+                  : "No civic concerns have been reported in your state yet. Be the first!"}
               </p>
             </div>
           ) : (
             <div className="divide-y divide-charcoal/10">
               {reports.map((r) => {
                 const statusMeta = getStatusDetails(r.status);
+                const voted = hasUpvoted(r);
                 return (
                   <div
                     key={r._id}
@@ -139,17 +166,21 @@ const AllReports = () => {
                   >
                     <div className="flex flex-col sm:flex-row items-start justify-between gap-6">
                       <div className="flex-1 space-y-4">
-                        
                         {/* Upper Details */}
                         <div>
-                          <div className="flex items-center gap-3 mb-2">
-                            <span className="text-[9px] font-mono text-charcoal/40 bg-charcoal/5 px-2 py-0.5 border border-charcoal/5">
-                              ID: {r._id}
-                            </span>
-                            <div className="w-1.5 h-1.5 bg-forest rounded-full"></div>
-                            <div className="flex items-center gap-1.5 text-charcoal/50 text-[10px]">
+                          <div className="flex items-center gap-3 mb-2 flex-wrap">
+                            <div className="flex items-center gap-1.5 text-[10px] text-charcoal/50">
+                              <User size={12} />
+                              <span className="font-bold">
+                                {r.user?.username || "Anonymous"}
+                              </span>
+                            </div>
+                            <div className="w-1 h-1 bg-charcoal/20 rounded-full"></div>
+                            <div className="flex items-center gap-1 text-charcoal/50 text-[10px]">
                               <Calendar size={12} />
-                              <span>{new Date(r.createdAt).toLocaleDateString()}</span>
+                              <span>
+                                {new Date(r.createdAt).toLocaleDateString()}
+                              </span>
                             </div>
                           </div>
                           <h3
@@ -159,11 +190,13 @@ const AllReports = () => {
                             {r.title}
                           </h3>
                           <p className="text-charcoal/70 text-xs font-light leading-relaxed max-w-2xl">
-                            {r.description}
+                            {r.description?.length > 200
+                              ? r.description.substring(0, 200) + "..."
+                              : r.description}
                           </p>
                         </div>
 
-                        {/* Mid Row Badges */}
+                        {/* Metadata Badges */}
                         <div className="flex flex-wrap items-center gap-4 text-[10px] text-charcoal/60">
                           <div className="flex items-center gap-1 bg-charcoal/5 px-2 py-1 border border-charcoal/5">
                             <Tag size={10} className="text-forest" />
@@ -171,47 +204,46 @@ const AllReports = () => {
                               {r.category || "uncategorized"}
                             </span>
                           </div>
-                          {r.state && (
-                            <div className="flex items-center gap-1">
-                              <MapPin size={10} className="text-forest" />
-                              <span className="capitalize">{r.state}</span>
-                            </div>
-                          )}
                           {r.area && (
                             <div className="flex items-center gap-1">
                               <Layers size={10} className="text-forest" />
                               <span className="capitalize">{r.area}</span>
                             </div>
                           )}
-                        </div>
-
-                        {/* Upvote & comment counts */}
-                        <div className="flex items-center gap-4 text-[10px] text-charcoal/50 pt-1">
-                          <div className="flex items-center gap-1">
-                            <ThumbsUp size={12} />
-                            <span className="font-bold">{r.upvotes?.length || 0} supports</span>
-                          </div>
-                          <button
-                            onClick={() => navigate(`/report/${r._id}`)}
-                            className="flex items-center gap-1 hover:text-forest transition-colors"
+                          <div
+                            className={`inline-flex items-center gap-1.5 px-3 py-1 font-bold uppercase tracking-wider border ${statusMeta.classes}`}
                           >
-                            <MessageCircle size={12} />
-                            <span className="font-bold">View details →</span>
-                          </button>
-                        </div>
-
-                        {/* Low Row Badges & Actions */}
-                        <div className="flex items-center gap-4 pt-1">
-                          <div className={`inline-flex items-center gap-1.5 px-3 py-1 text-[10px] font-bold uppercase tracking-wider border ${statusMeta.classes}`}>
                             {statusMeta.icon}
                             <span>{r.status}</span>
                           </div>
+                        </div>
+
+                        {/* Upvote & View Row */}
+                        <div className="flex items-center gap-4 pt-1">
+                          <button
+                            onClick={() => handleUpvote(r._id)}
+                            disabled={upvotingId === r._id}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest transition-all border ${
+                              voted
+                                ? "bg-forest text-sand border-forest"
+                                : "bg-white text-charcoal/60 border-charcoal/15 hover:border-forest hover:text-forest"
+                            }`}
+                          >
+                            <ThumbsUp size={12} />
+                            <span>
+                              {voted ? "Supported" : "Support"}
+                            </span>
+                            <span className="opacity-70">
+                              {r.upvotes?.length || 0}
+                            </span>
+                          </button>
 
                           <button
-                            onClick={() => navigate("/admin/update-status", { state: { reportId: r._id } })}
-                            className="bg-charcoal text-sand hover:bg-forest hover:text-sand text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 transition-all"
+                            onClick={() => navigate(`/report/${r._id}`)}
+                            className="flex items-center gap-1.5 text-[10px] text-charcoal/50 hover:text-forest font-bold uppercase tracking-widest transition-colors"
                           >
-                            Update Status
+                            <MessageCircle size={12} />
+                            <span>Discuss</span>
                           </button>
                         </div>
                       </div>
@@ -221,7 +253,7 @@ const AllReports = () => {
                         <div className="flex-shrink-0 w-full sm:w-28 h-28 border border-charcoal/10 overflow-hidden relative group">
                           <img
                             src={r.imageUrl}
-                            alt="Log evidence screenshot"
+                            alt={`Evidence for: ${r.title}`}
                             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                           />
                         </div>
@@ -238,8 +270,10 @@ const AllReports = () => {
         {reports.length > 0 && (
           <div className="mt-8 text-center">
             <p className="text-xs font-light text-charcoal/60 tracking-wider">
-              Showing {reports.length} anomaly log{reports.length !== 1 ? "s" : ""}
-              {filterArea && ` filtered inside "${filterArea}"`}
+              Showing {reports.length} report
+              {reports.length !== 1 ? "s" : ""} in{" "}
+              <span className="capitalize font-bold">{user?.state}</span>
+              {filterArea && ` filtered by "${filterArea}"`}
             </p>
           </div>
         )}
@@ -248,4 +282,4 @@ const AllReports = () => {
   );
 };
 
-export default AllReports;
+export default CommunityFeed;

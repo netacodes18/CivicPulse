@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useContext } from "react";
 import api from "../api/axios";
 import { AuthContext } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 import {
   FileText,
   Clock,
@@ -13,11 +14,14 @@ import {
   ArrowRight,
   FolderOpen,
   Trash2,
-  Calendar
+  Calendar,
+  ThumbsUp,
+  MessageCircle
 } from "lucide-react";
 
 const MyReports = () => {
   const { token } = useContext(AuthContext);
+  const navigate = useNavigate();
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -160,7 +164,10 @@ const MyReports = () => {
                               <span>{new Date(r.createdAt).toLocaleDateString()}</span>
                             </div>
                           </div>
-                          <h3 className="text-lg font-medium text-charcoal tracking-tight mb-2 uppercase">
+                          <h3
+                            onClick={() => navigate(`/report/${r._id}`)}
+                            className="text-lg font-medium text-charcoal tracking-tight mb-2 uppercase cursor-pointer hover:text-forest transition-colors"
+                          >
                             {r.title}
                           </h3>
                           <p className="text-charcoal/70 text-xs font-light leading-relaxed max-w-2xl">
@@ -188,6 +195,21 @@ const MyReports = () => {
                               <span className="capitalize">{r.area}</span>
                             </div>
                           )}
+                        </div>
+
+                        {/* Upvote & comment counts */}
+                        <div className="flex items-center gap-4 text-[10px] text-charcoal/50 pt-1">
+                          <div className="flex items-center gap-1">
+                            <ThumbsUp size={12} />
+                            <span className="font-bold">{r.upvotes?.length || 0} supports</span>
+                          </div>
+                          <button
+                            onClick={() => navigate(`/report/${r._id}`)}
+                            className="flex items-center gap-1 hover:text-forest transition-colors"
+                          >
+                            <MessageCircle size={12} />
+                            <span className="font-bold">View details →</span>
+                          </button>
                         </div>
 
                         {/* Lower status and delete action */}

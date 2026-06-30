@@ -11,6 +11,8 @@ import AllReports from "./pages/AllReports";
 import UserProfile from "./pages/UserProfile";
 import UpdateReportStatus from "./pages/UpdateReportStatus";
 import AdminDashboard from "./pages/AdminDashboard";
+import ReportDetail from "./pages/ReportDetail";
+import CommunityFeed from "./pages/CommunityFeed";
 
 
 
@@ -23,7 +25,9 @@ const App = () => {
         <Route path="/signup" element={<Signup />} />
         <Route path="/login" element={<Login />} />
         <Route path="/report" element={<Report />} />
+        <Route path="/report/:id" element={<ReportDetail />} />
         <Route path="/my-reports" element={<MyReports />} />
+        <Route path="/community" element={<CommunityFeed />} />
         <Route path="/all-reports" element={<AllReports />} />
         <Route path="/profile" element={<UserProfile />} />
         <Route path="/admin/update-status" element={<UpdateReportStatus />} />
