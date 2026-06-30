@@ -1,9 +1,10 @@
 import React, { useState, useContext } from "react";
 import api from "../api/axios";
 import { AuthContext } from "../context/AuthContext";
+import { ArrowRight, UploadCloud } from "lucide-react";
 
 const Report = () => {
-  const { user, token } = useContext(AuthContext); // use context
+  const { token } = useContext(AuthContext);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
@@ -20,7 +21,7 @@ const Report = () => {
     if (image) formData.append("image", image);
 
     try {
-      const res = await api.post("/api/user/report", formData, {
+      await api.post("/api/user/report", formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data",
@@ -39,49 +40,38 @@ const Report = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 py-8 px-4">
+    <div className="min-h-[calc(100vh-73px)] bg-[#FDFBF7] py-12 px-6">
       <div className="max-w-2xl mx-auto">
-        {/* Header Section */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-orange-500 rounded-full mb-4">
-            <svg
-              className="w-8 h-8 text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
-              />
-            </svg>
+        
+        {/* Header Block */}
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center justify-center w-12 h-12 bg-forest/5 border border-forest/15 text-forest mb-4">
+            <span className="text-xs font-bold tracking-widest uppercase">log.</span>
           </div>
-          <h1 className="text-3xl font-bold text-slate-800 mb-2">
-            Report a Municipal Issue
+          <h1 className="text-3xl font-light text-charcoal tracking-tight mb-2">
+            report an <span className="font-semibold italic text-forest">urban anomaly</span>
           </h1>
-          <p className="text-slate-600">
-            Help improve your community by reporting local issues
+          <p className="text-charcoal/60 text-xs tracking-wide">
+            document local space decay to request municipal caretakers restoration
           </p>
         </div>
 
-        {/* Report Form */}
-        <div className="bg-white rounded-xl shadow-lg border border-slate-200 p-8">
+        {/* Form Panel */}
+        <div className="bg-white rounded-none border border-charcoal/10 p-8 shadow-sm relative">
+          <div className="absolute top-0 left-0 w-full h-1 bg-forest"></div>
+          
           <form onSubmit={handleSubmit} className="space-y-6">
+            
             {/* Title Input */}
-            <div>
-              <label
-                htmlFor="title"
-                className="block text-sm font-semibold text-slate-700 mb-2"
-              >
-                Issue Title *
+            <div className="flex flex-col">
+              <label htmlFor="title" className="text-[9px] uppercase tracking-widest text-charcoal/60 font-bold mb-1">
+                Anomaly Title *
               </label>
               <input
                 id="title"
                 type="text"
-                placeholder="e.g., Pothole on Main Street, Broken streetlight"
-                className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 text-slate-800 placeholder-slate-400"
+                placeholder="e.g. Broken pavement slabs, Damaged drainage pipes"
+                className="w-full border-b border-charcoal/20 focus:border-forest bg-transparent rounded-none py-2 px-1 text-charcoal text-sm outline-none transition-colors placeholder-charcoal/30"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 required
@@ -89,61 +79,50 @@ const Report = () => {
             </div>
 
             {/* Category Selection */}
-            <div>
-              <label
-                htmlFor="category"
-                className="block text-sm font-semibold text-slate-700 mb-2"
-              >
-                Issue Category *
+            <div className="flex flex-col">
+              <label htmlFor="category" className="text-[9px] uppercase tracking-widest text-charcoal/60 font-bold mb-1">
+                Anomalous Sector *
               </label>
               <select
                 id="category"
-                className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 text-slate-800 bg-white"
+                className="w-full border-b border-charcoal/20 focus:border-forest bg-transparent rounded-none py-2 px-1 text-charcoal text-sm outline-none transition-colors cursor-pointer"
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
                 required
               >
-                <option value="">Select an issue category</option>
-                <option value="roads">Roads & Transportation</option>
-                <option value="sanitation">Sanitation & Waste</option>
-                <option value="streetlights">Street Lighting</option>
-                <option value="water">Water & Drainage</option>
-                <option value="parks">Parks & Recreation</option>
-                <option value="noise">Noise Pollution</option>
-                <option value="utilities">Public Utilities</option>
-                <option value="safety">Public Safety</option>
-                <option value="other">Other</option>
+                <option value="">Select a sector of concern</option>
+                <option value="roads">Roads & Pedestrian paths</option>
+                <option value="streetlights">Spatial Lighting & Standards</option>
+                <option value="sanitation">Sanitation & Garbage Management</option>
+                <option value="water">Water & Drainage Pipelines</option>
+                <option value="parks">Parks & Public Recreation</option>
+                <option value="safety">Public Safety & Structures</option>
+                <option value="other">Other Public Assets</option>
               </select>
             </div>
 
-            {/* Description */}
-            <div>
-              <label
-                htmlFor="description"
-                className="block text-sm font-semibold text-slate-700 mb-2"
-              >
+            {/* Detailed Description */}
+            <div className="flex flex-col">
+              <label htmlFor="description" className="text-[9px] uppercase tracking-widest text-charcoal/60 font-bold mb-1">
                 Detailed Description *
               </label>
               <textarea
                 id="description"
-                rows="5"
-                placeholder="Please provide details..."
-                className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 text-slate-800 placeholder-slate-400 resize-vertical"
+                rows="4"
+                placeholder="Provide precise location, landmarks, and structural status description..."
+                className="w-full border-b border-charcoal/20 focus:border-forest bg-transparent rounded-none py-2 px-1 text-charcoal text-sm outline-none transition-colors placeholder-charcoal/30 resize-y"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 required
               />
             </div>
 
-            {/* Image Upload */}
-            <div>
-              <label
-                htmlFor="image"
-                className="block text-sm font-semibold text-slate-700 mb-2"
-              >
-                Upload Photo (Optional)
+            {/* File Upload Box */}
+            <div className="flex flex-col">
+              <label className="text-[9px] uppercase tracking-widest text-charcoal/60 font-bold mb-2">
+                Photo Evidence (Optional)
               </label>
-              <div className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors duration-200">
+              <div className="border border-dashed border-charcoal/30 hover:border-forest rounded-none p-6 text-center cursor-pointer transition-colors bg-[#FDFBF7] relative">
                 <input
                   id="image"
                   type="file"
@@ -151,35 +130,29 @@ const Report = () => {
                   className="hidden"
                   onChange={(e) => setImage(e.target.files[0])}
                 />
-                <label htmlFor="image" className="cursor-pointer">
-                  <div className="flex flex-col items-center">
-                    <svg
-                      className="w-12 h-12 text-slate-400 mb-3"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                      />
-                    </svg>
-                    <span className="text-slate-600 font-medium">
-                      Click to upload image
-                    </span>
-                    <span className="text-slate-400 text-sm">
-                      PNG/JPG up to 10MB
-                    </span>
-                  </div>
+                <label htmlFor="image" className="cursor-pointer flex flex-col items-center">
+                  <UploadCloud size={28} className="text-sage mb-2" />
+                  <span className="text-xs font-semibold text-charcoal block mb-1">
+                    Select local image file
+                  </span>
+                  <span className="text-[10px] text-charcoal/50">
+                    PNG, JPG, or JPEG up to 5MB
+                  </span>
                 </label>
               </div>
+              
               {image && (
-                <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-                  <p className="text-green-700 text-sm font-medium">
-                    ✓ File: {image.name}
-                  </p>
+                <div className="mt-3 p-3 bg-forest/5 border border-forest/10 flex justify-between items-center">
+                  <span className="text-xs font-medium text-forest truncate max-w-[90%]">
+                    ✓ Selected: {image.name}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setImage(null)}
+                    className="text-[10px] font-bold uppercase text-red-700 hover:text-red-900 ml-2"
+                  >
+                    remove
+                  </button>
                 </div>
               )}
             </div>
@@ -188,23 +161,24 @@ const Report = () => {
             <div className="pt-4">
               <button
                 type="submit"
-                className="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 shadow-sm flex items-center justify-center gap-2"
+                className="w-full bg-forest hover:bg-charcoal text-sand hover:text-white py-4 text-xs font-bold uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2 group"
               >
-                Submit Report
+                <span>Submit Grievance Log</span>
+                <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
               </button>
             </div>
           </form>
 
-          {/* Message */}
+          {/* Banner message */}
           {message && (
             <div
-              className={`mt-6 p-4 rounded-lg border ${
+              className={`mt-6 p-4 border text-center ${
                 message.includes("successfully")
-                  ? "bg-green-50 border-green-200 text-green-800"
+                  ? "bg-forest/5 border-forest/20 text-forest"
                   : "bg-red-50 border-red-200 text-red-800"
               }`}
             >
-              <p className="font-medium">{message}</p>
+              <p className="text-xs font-semibold uppercase tracking-wider">{message}</p>
             </div>
           )}
         </div>

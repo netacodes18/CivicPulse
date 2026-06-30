@@ -2,6 +2,7 @@ import React, { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import { AuthContext } from "../context/AuthContext";
+import { ArrowRight } from "lucide-react";
 
 const Login = () => {
   const [form, setForm] = useState({
@@ -24,15 +25,11 @@ const Login = () => {
 
     try {
       const res = await api.post("/api/auth/login", form);
-
       const token = res.data.token;
-
-      // store token + decode via AuthContext
       login(token);
 
-      // decode ONLY for redirect (safe)
+      // Decode token for route redirecting
       const decoded = JSON.parse(atob(token.split(".")[1]));
-
       if (decoded.role === "admin") navigate("/all-reports");
       else navigate("/my-reports");
     } catch (err) {
@@ -42,108 +39,106 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 px-4 py-8">
+    <div className="min-h-[calc(100vh-73px)] flex items-center justify-center bg-[#FDFBF7] px-6 py-12">
       <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-full mb-4">
-            <svg
-              className="w-8 h-8 text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-              />
-            </svg>
+        
+        {/* Header Block */}
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center justify-center w-12 h-12 bg-forest/5 border border-forest/15 text-forest mb-4">
+            <span className="text-xs font-bold tracking-widest uppercase">cp.</span>
           </div>
-          <h1 className="text-2xl font-bold text-slate-800 mb-2">
-            Crowdsourced Local Issue Tracker
+          <h1 className="text-2xl font-light text-charcoal tracking-tight mb-2">
+            sign in to <span className="font-semibold italic text-forest">civicpulse.</span>
           </h1>
-          <p className="text-slate-600 text-sm">
-            Report and track local civic issues in your community
+          <p className="text-charcoal/60 text-xs tracking-wide">
+            stewarding local neighborhoods & community spaces
           </p>
         </div>
 
-        <form
-          onSubmit={handleSubmit}
-          className="bg-white p-8 rounded-xl shadow-lg border border-slate-200 space-y-6"
-        >
-          <div className="text-center">
-            <h2 className="text-xl font-semibold text-slate-800 mb-2">Sign In</h2>
-            <p className="text-slate-600 text-sm">Access your civic dashboard</p>
-          </div>
-
-          {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-              <p className="text-red-700 text-sm text-center font-medium">
-                {error}
-              </p>
-            </div>
-          )}
-
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Username
-              </label>
-              <input
-                type="text"
-                name="username"
-                value={form.username}
-                onChange={handleChange}
-                className="w-full px-4 py-3 border border-slate-300 rounded-lg"
-                required
-              />
+        {/* Form Panel */}
+        <div className="bg-white border border-charcoal/10 p-8 shadow-sm relative">
+          {/* Top Geometric Accent */}
+          <div className="absolute top-0 left-0 w-full h-1 bg-forest"></div>
+          
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="text-center mb-4">
+              <h2 className="text-sm font-semibold uppercase tracking-widest text-charcoal">
+                Access Portal
+              </h2>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Password
-              </label>
-              <input
-                type="password"
-                name="password"
-                value={form.password}
-                onChange={handleChange}
-                className="w-full px-4 py-3 border border-slate-300 rounded-lg"
-                required
-              />
+            {error && (
+              <div className="bg-red-50 border-l-2 border-red-500 p-3">
+                <p className="text-red-800 text-xs text-center font-medium">
+                  {error}
+                </p>
+              </div>
+            )}
+
+            <div className="space-y-6">
+              {/* Username Input */}
+              <div className="flex flex-col">
+                <label className="text-[9px] uppercase tracking-widest text-charcoal/60 font-bold mb-1">
+                  Username *
+                </label>
+                <input
+                  type="text"
+                  name="username"
+                  value={form.username}
+                  onChange={handleChange}
+                  className="w-full border-b border-charcoal/20 focus:border-forest bg-transparent rounded-none py-2 px-1 text-charcoal text-sm outline-none transition-colors"
+                  required
+                />
+              </div>
+
+              {/* Password Input */}
+              <div className="flex flex-col">
+                <label className="text-[9px] uppercase tracking-widest text-charcoal/60 font-bold mb-1">
+                  Password *
+                </label>
+                <input
+                  type="password"
+                  name="password"
+                  value={form.password}
+                  onChange={handleChange}
+                  className="w-full border-b border-charcoal/20 focus:border-forest bg-transparent rounded-none py-2 px-1 text-charcoal text-sm outline-none transition-colors"
+                  required
+                />
+              </div>
+
+              {/* Role Selector */}
+              <div className="flex flex-col">
+                <label className="text-[9px] uppercase tracking-widest text-charcoal/60 font-bold mb-1">
+                  Access Level *
+                </label>
+                <select
+                  name="role"
+                  value={form.role}
+                  onChange={handleChange}
+                  className="w-full border-b border-charcoal/20 focus:border-forest bg-transparent rounded-none py-2 px-1 text-charcoal text-sm outline-none transition-colors appearance-none cursor-pointer"
+                >
+                  <option value="user">Citizen User</option>
+                  <option value="admin">Municipal Admin</option>
+                </select>
+              </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Access Level
-              </label>
-              <select
-                name="role"
-                value={form.role}
-                onChange={handleChange}
-                className="w-full px-4 py-3 border border-slate-300 rounded-lg bg-white"
-              >
-                <option value="user">Citizen User</option>
-                <option value="admin">Municipal Admin</option>
-              </select>
-            </div>
-          </div>
+            <button
+              type="submit"
+              className="w-full bg-forest hover:bg-charcoal text-sand hover:text-white py-4 text-xs font-bold uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2 group"
+            >
+              <span>Authenticate Session</span>
+              <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+            </button>
 
-          <button
-            type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg"
-          >
-            Sign In to Dashboard
-          </button>
-
-          <p
-            className="pt-4 text-sm text-center text-blue-600 cursor-pointer"
-            onClick={() => navigate("/signup")}
-          >
-            Don't have an account? Create Account
-          </p>
-        </form>
+            <p
+              className="pt-4 text-xs text-center text-forest hover:text-charcoal cursor-pointer font-medium tracking-wide"
+              onClick={() => navigate("/signup")}
+            >
+              No account? Register stewardship profile
+            </p>
+          </form>
+        </div>
       </div>
     </div>
   );

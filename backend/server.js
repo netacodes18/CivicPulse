@@ -37,6 +37,11 @@ if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir);
 }
 
+app.use((req, res, next) => {
+  console.log(`➡️  [${new Date().toLocaleTimeString()}] ${req.method} ${req.url}`);
+  next();
+});
+
 app.use(express.json());
 app.use("/uploads", express.static(uploadsDir));
 
