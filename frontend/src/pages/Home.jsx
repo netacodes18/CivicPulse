@@ -7,10 +7,10 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-[#FDFBF7] text-charcoal font-sans selection:bg-sand selection:text-charcoal overflow-x-hidden">
-      
+
       {/* 1. Hero Section (Split Layout) */}
       <section className="relative min-h-[calc(100vh-73px)] flex flex-col md:flex-row border-b border-charcoal/10">
-        
+
         {/* Left Content Side */}
         <div className="flex-1 flex flex-col justify-between px-6 py-12 md:p-16 lg:p-24 bg-[#FDFBF7]">
           {/* Top Label */}
@@ -30,7 +30,7 @@ const Home = () => {
             <p className="text-charcoal/70 text-sm md:text-base font-light leading-relaxed mb-10 max-w-md">
               A collaborative citizen platform for crowdsourcing municipal caretakers. Report neighborhood issues. Monitor spatial resolutions. Shape cleaner cities.
             </p>
-            
+
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
               <button
                 onClick={() => navigate("/login")}
@@ -211,7 +211,7 @@ const Home = () => {
             <div key={idx} className="bg-white border border-charcoal/5 p-8 relative flex flex-col justify-between min-h-[260px] shadow-sm hover:shadow-md transition-shadow">
               {/* Corner accent block */}
               <div className="absolute top-0 right-0 w-3 h-3 bg-sand"></div>
-              
+
               <span className="text-3xl font-light text-forest italic block mb-6">{proc.step}</span>
               <div>
                 <h3 className="text-base font-semibold uppercase tracking-widest text-charcoal mb-3">{proc.title}</h3>
@@ -257,7 +257,7 @@ const Home = () => {
         <div className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row justify-between items-center gap-4">
           <span className="tracking-widest uppercase text-[10px] font-bold text-sand/30">civicpulse.</span>
           <span className="font-light">
-            Designed for urban restoration by <span className="text-sand/50 font-medium">Hardyansh, IIIT Ranchi</span>
+            Designed for urban restoration by <span className="text-sand/50 font-medium">Utkarsh, IIIT Ranchi</span>
           </span>
         </div>
       </footer>
