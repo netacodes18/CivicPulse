@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- Rounded square background in Charcoal -->
+  <rect width="32" height="32" rx="8" fill="#111A17"/>
+  
+  <!-- Architecturally inspired structural arc (C-shape) in Warm Sand -->
+  <circle cx="16" cy="16" r="8" fill="none" stroke="#E6D9C6" stroke-width="3" stroke-dasharray="38 15" stroke-dashoffset="6" stroke-linecap="round"/>
+  
+  <!-- Forest Green center accent dot representing civic care & pulse -->
+  <circle cx="16" cy="16" r="3.5" fill="#2E3A38"/>
+</svg>
