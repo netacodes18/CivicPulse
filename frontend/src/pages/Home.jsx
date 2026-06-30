@@ -12,7 +12,7 @@ const Home = () => {
       <section className="relative min-h-[calc(100vh-73px)] flex flex-col md:flex-row border-b border-charcoal/10">
         
         {/* Left Content Side */}
-        <div className="flex-1 flex flex-col justify-between p-8 md:p-16 lg:p-24 bg-[#FDFBF7]">
+        <div className="flex-1 flex flex-col justify-between px-6 py-12 md:p-16 lg:p-24 bg-[#FDFBF7]">
           {/* Top Label */}
           <div className="flex items-center space-x-2">
             <span className="text-[10px] tracking-[0.25em] uppercase font-bold text-forest">
