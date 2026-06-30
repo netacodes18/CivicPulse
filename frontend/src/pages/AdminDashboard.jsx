@@ -174,7 +174,7 @@ useEffect(() => {
                 </div>
                 <div className="mt-4">
                   <h3 className="text-3xl font-bold text-red-600">
-                    {stats?.total?.toLocaleString()}
+                    {stats?.pending?.toLocaleString()}
 
                   </h3>
                   <p className="text-slate-600 text-sm mt-1 font-medium">
@@ -218,7 +218,7 @@ useEffect(() => {
                 </div>
                 <div className="mt-4">
                   <h3 className="text-3xl font-bold text-yellow-600">
-                    {stats?.total?.toLocaleString()}
+                    {stats?.inProgress?.toLocaleString()}
 
                   </h3>
                   <p className="text-slate-600 text-sm mt-1 font-medium">
@@ -256,7 +256,7 @@ useEffect(() => {
                 </div>
                 <div className="mt-4">
                   <h3 className="text-3xl font-bold text-green-600">
-                    {stats?.total?.toLocaleString()}
+                    {stats?.resolved?.toLocaleString()}
 
                   </h3>
                   <p className="text-slate-600 text-sm mt-1 font-medium">
