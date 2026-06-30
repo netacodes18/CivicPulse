@@ -2,11 +2,18 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import { ArrowRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
+
+const INDIAN_STATES = [
+  "Andaman and Nicobar Islands", "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chandigarh", "Chhattisgarh", "Dadra and Nagar Haveli and Daman and Diu", "Delhi", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jammu and Kashmir", "Jharkhand", "Karnataka", "Kerala", "Ladakh", "Lakshadweep", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Puducherry", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal"
+];
 
 const Signup = () => {
+  const { t } = useTranslation();
   const [form, setForm] = useState({
     username: "",
     email: "",
+    phone: "",
     password: "",
     role: "user",
     state: "",
@@ -47,10 +54,10 @@ const Signup = () => {
             <span className="text-xs font-bold tracking-widest uppercase">cp.</span>
           </div>
           <h1 className="text-2xl font-light text-charcoal tracking-tight mb-2">
-            create <span className="font-semibold italic text-forest">stewardship account</span>
+            {t("signup_title")}
           </h1>
           <p className="text-charcoal/60 text-xs tracking-wide">
-            register and monitor spatial resolutions in your area
+            {t("signup_subtitle")}
           </p>
         </div>
 
@@ -86,7 +93,7 @@ const Signup = () => {
               {/* Username */}
               <div className="flex flex-col">
                 <label className="text-[9px] uppercase tracking-widest text-charcoal/60 font-bold mb-1">
-                  Username *
+                  {t("signup_username")} *
                 </label>
                 <input
                   name="username"
@@ -100,7 +107,7 @@ const Signup = () => {
               {/* Email */}
               <div className="flex flex-col">
                 <label className="text-[9px] uppercase tracking-widest text-charcoal/60 font-bold mb-1">
-                  Email *
+                  {t("signup_email")} *
                 </label>
                 <input
                   name="email"
@@ -112,10 +119,29 @@ const Signup = () => {
                 />
               </div>
 
+              {/* Phone */}
+              <div className="flex flex-col">
+                <label className="text-[9px] uppercase tracking-widest text-charcoal/60 font-bold mb-1">
+                  {t("signup_phone")} *
+                </label>
+                <div className="flex items-center">
+                  <span className="text-charcoal/50 text-sm py-2 pr-2 border-b border-charcoal/20">+91</span>
+                  <input
+                    name="phone"
+                    type="tel"
+                    value={form.phone}
+                    onChange={handleChange}
+                    placeholder="9876543210"
+                    className="w-full border-b border-charcoal/20 focus:border-forest bg-transparent rounded-none py-2 px-1 text-charcoal text-sm outline-none transition-colors placeholder-charcoal/20"
+                    required
+                  />
+                </div>
+              </div>
+
               {/* Password */}
               <div className="flex flex-col">
                 <label className="text-[9px] uppercase tracking-widest text-charcoal/60 font-bold mb-1">
-                  Password *
+                  {t("signup_password")} *
                 </label>
                 <input
                   name="password"
@@ -130,7 +156,7 @@ const Signup = () => {
               {/* Role */}
               <div className="flex flex-col">
                 <label className="text-[9px] uppercase tracking-widest text-charcoal/60 font-bold mb-1">
-                  Access Level *
+                  {t("signup_role")} *
                 </label>
                 <select
                   name="role"
@@ -146,7 +172,7 @@ const Signup = () => {
               {/* State */}
               <div className="flex flex-col">
                 <label className="text-[9px] uppercase tracking-widest text-charcoal/60 font-bold mb-1">
-                  State *
+                  {t("signup_state")} *
                 </label>
                 <select
                   name="state"
@@ -155,18 +181,17 @@ const Signup = () => {
                   className="w-full border-b border-charcoal/20 focus:border-forest bg-transparent rounded-none py-2 px-1 text-charcoal text-sm outline-none transition-colors cursor-pointer"
                   required
                 >
-                  <option value="">Select State</option>
-                  <option value="uttar pradesh">Uttar Pradesh</option>
-                  <option value="bihar">Bihar</option>
-                  <option value="maharashtra">Maharashtra</option>
-                  <option value="karnataka">Karnataka</option>
+                  <option value="">{t("signup_state_placeholder")}</option>
+                  {INDIAN_STATES.map((state) => (
+                    <option key={state} value={state.toLowerCase()}>{state}</option>
+                  ))}
                 </select>
               </div>
 
               {/* Area */}
               <div className="flex flex-col">
                 <label className="text-[9px] uppercase tracking-widest text-charcoal/60 font-bold mb-1">
-                  Area (Optional)
+                  {t("signup_area")}
                 </label>
                 <input
                   name="area"
@@ -180,9 +205,9 @@ const Signup = () => {
 
             <button
               type="submit"
-              className="w-full bg-forest hover:bg-charcoal text-sand hover:text-white py-4 text-xs font-bold uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2 group mt-4"
+              className="w-full bg-forest hover:bg-[#D96C4A] text-sand hover:text-white py-4 text-xs font-bold uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2 group mt-4 border border-transparent shadow-sm"
             >
-              <span>Register Account</span>
+              <span>{t("signup_btn")}</span>
               <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
             </button>
 

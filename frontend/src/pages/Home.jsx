@@ -1,22 +1,31 @@
 import React from "react";
 import { ArrowRight, MapPin, Globe, Compass, ArrowUpRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 const Home = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   return (
     <div className="min-h-screen bg-[#FDFBF7] text-charcoal font-sans selection:bg-sand selection:text-charcoal overflow-x-hidden">
 
       {/* 1. Hero Section (Split Layout) */}
       <section className="relative min-h-[calc(100vh-73px)] flex flex-col md:flex-row border-b border-charcoal/10">
+        
+        {/* Subtle Jaali Background Pattern */}
+        <div className="absolute inset-0 pointer-events-none opacity-[0.03] z-0" 
+          style={{ 
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%231A1C19' fill-opacity='1'%3E%3Cpath d='M30 30c0-11-9-20-20-20v10a10 10 0 0 1 10 10h10zm0 0c0 11 9 20 20 20V40a10 10 0 0 1-10-10H30zm0 0c0-11 9-20 20-20v10a10 10 0 0 1-10 10H30zm0 0c0 11-9 20-20 20V40a10 10 0 0 1 10-10h10z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+          }}
+        ></div>
 
         {/* Left Content Side */}
-        <div className="flex-1 flex flex-col justify-between px-6 py-12 md:p-16 lg:p-24 bg-[#FDFBF7]">
+        <div className="flex-1 flex flex-col justify-between px-6 py-12 md:p-16 lg:p-24 bg-[#FDFBF7] relative z-10">
           {/* Top Label */}
           <div className="flex items-center space-x-2">
             <span className="text-[10px] tracking-[0.25em] uppercase font-bold text-forest">
-              stewardship project
+              {t("home_subtitle")}
             </span>
             <div className="w-8 h-px bg-forest/30"></div>
           </div>
@@ -24,19 +33,19 @@ const Home = () => {
           {/* Main Title & Action */}
           <div className="my-auto max-w-xl py-12">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-light tracking-tight text-charcoal leading-[1.1] mb-8">
-              stewarding <br />
-              <span className="font-semibold italic text-forest">urban integrity</span>
+              {t("home_title")} <br />
+              <span className="font-semibold italic text-forest">{t("home_title_accent")}</span>
             </h1>
             <p className="text-charcoal/70 text-sm md:text-base font-light leading-relaxed mb-10 max-w-md">
-              A collaborative citizen platform for crowdsourcing municipal caretakers. Report neighborhood issues. Monitor spatial resolutions. Shape cleaner cities.
+              {t("home_description")}
             </p>
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
               <button
                 onClick={() => navigate("/login")}
-                className="bg-forest hover:bg-charcoal text-sand hover:text-white px-8 py-4 text-xs font-bold uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2 group"
+                className="bg-forest hover:bg-[#D96C4A] text-sand hover:text-white px-8 py-4 text-xs font-bold uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2 group shadow-sm border border-transparent"
               >
-                <span>Report an Issue</span>
+                <span>{t("home_cta_report")}</span>
                 <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
               </button>
               <button

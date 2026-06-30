@@ -1,12 +1,18 @@
 import React, { useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
-import { LogOut } from "lucide-react";
+import { LogOut, Globe } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const Navbar = () => {
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = React.useState(false);
+  const { t, i18n } = useTranslation();
+
+  const toggleLanguage = () => {
+    i18n.changeLanguage(i18n.language.startsWith('hi') ? 'en' : 'hi');
+  };
 
   const handleLogout = () => {
     logout();
@@ -37,19 +43,19 @@ const Navbar = () => {
                     to="/report"
                     className="text-xs uppercase tracking-widest text-charcoal/70 hover:text-charcoal hover:border-b hover:border-charcoal pb-1 transition-all duration-150 font-medium"
                   >
-                    Report Issue
+                    {t("nav_report_issue")}
                   </Link>
                   <Link
                     to="/my-reports"
                     className="text-xs uppercase tracking-widest text-charcoal/70 hover:text-charcoal hover:border-b hover:border-charcoal pb-1 transition-all duration-150 font-medium"
                   >
-                    My Reports
+                    {t("nav_my_reports")}
                   </Link>
                   <Link
                     to="/community"
                     className="text-xs uppercase tracking-widest text-charcoal/70 hover:text-charcoal hover:border-b hover:border-charcoal pb-1 transition-all duration-150 font-medium"
                   >
-                    Community
+                    {t("nav_community")}
                   </Link>
                   <Link
                     to="/profile"
@@ -66,13 +72,13 @@ const Navbar = () => {
                     to="/admin-dashboard"
                     className="text-xs uppercase tracking-widest text-charcoal/70 hover:text-charcoal hover:border-b hover:border-charcoal pb-1 transition-all duration-150 font-medium"
                   >
-                    Dashboard
+                    {t("nav_dashboard")}
                   </Link>
                   <Link
                     to="/all-reports"
                     className="text-xs uppercase tracking-widest text-charcoal/70 hover:text-charcoal hover:border-b hover:border-charcoal pb-1 transition-all duration-150 font-medium"
                   >
-                    All Reports
+                    {t("nav_all_reports")}
                   </Link>
                   <Link
                     to="/admin/update-status"
@@ -82,6 +88,16 @@ const Navbar = () => {
                   </Link>
                 </>
               )}
+
+              {/* Language Switcher */}
+              <button
+                onClick={toggleLanguage}
+                className="flex items-center gap-1.5 text-[10px] uppercase font-bold text-charcoal/60 hover:text-forest transition-colors"
+                title="Toggle Language"
+              >
+                <Globe size={14} />
+                <span>{i18n.language.startsWith('hi') ? 'ENG' : 'हिंदी'}</span>
+              </button>
 
               {/* Status indicator */}
               <div className="flex items-center space-x-2 bg-forest/5 border border-forest/10 px-3 py-1 rounded">
@@ -97,22 +113,32 @@ const Navbar = () => {
                 className="text-xs uppercase tracking-widest text-red-700/80 hover:text-red-700 transition-colors flex items-center gap-1.5 font-medium"
               >
                 <LogOut size={14} />
-                <span>Logout</span>
+                <span>{t("nav_logout")}</span>
               </button>
             </>
           ) : (
             <div className="flex items-center space-x-6">
+              {/* Language Switcher */}
+              <button
+                onClick={toggleLanguage}
+                className="flex items-center gap-1.5 text-[10px] uppercase font-bold text-charcoal/60 hover:text-forest transition-colors"
+                title="Toggle Language"
+              >
+                <Globe size={14} />
+                <span>{i18n.language.startsWith('hi') ? 'ENG' : 'हिंदी'}</span>
+              </button>
+
               <Link
                 to="/login"
                 className="text-xs uppercase tracking-widest text-charcoal hover:text-forest transition-colors font-semibold"
               >
-                Login
+                {t("nav_login")}
               </Link>
               <Link
                 to="/signup"
                 className="text-xs uppercase tracking-widest bg-forest text-sand px-4 py-2 hover:bg-charcoal hover:text-white transition-all duration-200 shadow-sm font-semibold"
               >
-                Sign Up
+                {t("nav_signup")}
               </Link>
             </div>
           )}
@@ -149,21 +175,21 @@ const Navbar = () => {
                     onClick={() => setIsOpen(false)}
                     className="text-xs uppercase tracking-widest text-charcoal/70 hover:text-charcoal py-1.5 font-medium"
                   >
-                    Report Issue
+                    {t("nav_report_issue")}
                   </Link>
                   <Link
                     to="/my-reports"
                     onClick={() => setIsOpen(false)}
                     className="text-xs uppercase tracking-widest text-charcoal/70 hover:text-charcoal py-1.5 font-medium"
                   >
-                    My Reports
+                    {t("nav_my_reports")}
                   </Link>
                   <Link
                     to="/community"
                     onClick={() => setIsOpen(false)}
                     className="text-xs uppercase tracking-widest text-charcoal/70 hover:text-charcoal py-1.5 font-medium"
                   >
-                    Community
+                    {t("nav_community")}
                   </Link>
                   <Link
                     to="/profile"
@@ -182,14 +208,14 @@ const Navbar = () => {
                     onClick={() => setIsOpen(false)}
                     className="text-xs uppercase tracking-widest text-charcoal/70 hover:text-charcoal py-1.5 font-medium"
                   >
-                    Dashboard
+                    {t("nav_dashboard")}
                   </Link>
                   <Link
                     to="/all-reports"
                     onClick={() => setIsOpen(false)}
                     className="text-xs uppercase tracking-widest text-charcoal/70 hover:text-charcoal py-1.5 font-medium"
                   >
-                    All Reports
+                    {t("nav_all_reports")}
                   </Link>
                   <Link
                     to="/admin/update-status"
@@ -213,7 +239,7 @@ const Navbar = () => {
                   className="text-xs uppercase tracking-widest text-red-700/80 hover:text-red-700 flex items-center gap-1.5 font-medium"
                 >
                   <LogOut size={14} />
-                  <span>Logout</span>
+                  <span>{t("nav_logout")}</span>
                 </button>
               </div>
             </>
@@ -224,14 +250,14 @@ const Navbar = () => {
                 onClick={() => setIsOpen(false)}
                 className="text-xs text-center uppercase tracking-widest text-charcoal hover:text-forest py-2 font-semibold"
               >
-                Login
+                {t("nav_login")}
               </Link>
               <Link
                 to="/signup"
                 onClick={() => setIsOpen(false)}
                 className="text-xs text-center uppercase tracking-widest bg-forest text-sand py-2 hover:bg-charcoal hover:text-white transition-all duration-200 font-semibold"
               >
-                Sign Up
+                {t("nav_signup")}
               </Link>
             </div>
           )}

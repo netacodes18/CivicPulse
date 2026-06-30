@@ -2,8 +2,10 @@ import React, { useState, useContext } from "react";
 import api from "../api/axios";
 import { AuthContext } from "../context/AuthContext";
 import { ArrowRight, UploadCloud, MapPin, Navigation } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const Report = () => {
+  const { t } = useTranslation();
   const { token } = useContext(AuthContext);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -18,7 +20,7 @@ const Report = () => {
     setFetchingLocation(true);
     setLocationError("");
     if (!navigator.geolocation) {
-      setLocationError("Geolocation is not supported by your browser.");
+      setLocationError(t("report_err_gps"));
       setFetchingLocation(false);
       return;
     }
@@ -32,7 +34,7 @@ const Report = () => {
         setFetchingLocation(false);
       },
       (error) => {
-        setLocationError("Unable to retrieve your location. Please ensure location services are enabled.");
+        setLocationError(t("report_err_gps_fail"));
         setFetchingLocation(false);
       }
     );
@@ -81,10 +83,10 @@ const Report = () => {
             <span className="text-xs font-bold tracking-widest uppercase">log.</span>
           </div>
           <h1 className="text-3xl font-light text-charcoal tracking-tight mb-2">
-            report an <span className="font-semibold italic text-forest">urban anomaly</span>
+            {t("report_title")}
           </h1>
           <p className="text-charcoal/60 text-xs tracking-wide">
-            document local space decay to request municipal caretakers restoration
+            {t("report_subtitle")}
           </p>
         </div>
 
@@ -97,7 +99,7 @@ const Report = () => {
             {/* Title Input */}
             <div className="flex flex-col">
               <label htmlFor="title" className="text-[9px] uppercase tracking-widest text-charcoal/60 font-bold mb-1">
-                Anomaly Title *
+                {t("report_form_title")} *
               </label>
               <input
                 id="title"
@@ -113,7 +115,7 @@ const Report = () => {
             {/* Category Selection */}
             <div className="flex flex-col">
               <label htmlFor="category" className="text-[9px] uppercase tracking-widest text-charcoal/60 font-bold mb-1">
-                Anomalous Sector *
+                {t("report_form_category")} *
               </label>
               <select
                 id="category"
@@ -122,21 +124,19 @@ const Report = () => {
                 onChange={(e) => setCategory(e.target.value)}
                 required
               >
-                <option value="">Select a sector of concern</option>
-                <option value="roads">Roads & Pedestrian paths</option>
-                <option value="streetlights">Spatial Lighting & Standards</option>
-                <option value="sanitation">Sanitation & Garbage Management</option>
-                <option value="water">Water & Drainage Pipelines</option>
-                <option value="parks">Parks & Public Recreation</option>
-                <option value="safety">Public Safety & Structures</option>
-                <option value="other">Other Public Assets</option>
+                <option value="">{t("report_form_category")}</option>
+                <option value="roads">{t("report_cat_roads")}</option>
+                <option value="sanitation">{t("report_cat_sanitation")}</option>
+                <option value="water">{t("report_cat_water")}</option>
+                <option value="electricity">{t("report_cat_electricity")}</option>
+                <option value="other">{t("report_cat_other")}</option>
               </select>
             </div>
 
             {/* Detailed Description */}
             <div className="flex flex-col">
               <label htmlFor="description" className="text-[9px] uppercase tracking-widest text-charcoal/60 font-bold mb-1">
-                Detailed Description *
+                {t("report_form_desc")} *
               </label>
               <textarea
                 id="description"
@@ -152,7 +152,7 @@ const Report = () => {
             {/* File Upload Box */}
             <div className="flex flex-col">
               <label className="text-[9px] uppercase tracking-widest text-charcoal/60 font-bold mb-2">
-                Photo Evidence (Optional)
+                {t("report_evidence")} (Optional)
               </label>
               <div className="border border-dashed border-charcoal/30 hover:border-forest rounded-none p-6 text-center cursor-pointer transition-colors bg-[#FDFBF7] relative">
                 <input
@@ -192,7 +192,7 @@ const Report = () => {
             {/* Geolocation Section */}
             <div className="flex flex-col">
               <label className="text-[9px] uppercase tracking-widest text-charcoal/60 font-bold mb-2">
-                Location Coordinates (Optional)
+                {t("report_gps")}
               </label>
               
               <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
@@ -203,7 +203,7 @@ const Report = () => {
                   className="bg-charcoal/5 hover:bg-charcoal/10 text-charcoal border border-charcoal/20 px-4 py-2 text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center gap-2 disabled:opacity-50"
                 >
                   <Navigation size={14} className={fetchingLocation ? "animate-pulse" : ""} />
-                  {fetchingLocation ? "Detecting..." : "Detect Location"}
+                  {fetchingLocation ? t("report_btn_detecting") : t("report_btn_detect")}
                 </button>
                 
                 <div className="flex-1">
@@ -214,7 +214,7 @@ const Report = () => {
                     </div>
                   ) : (
                     <span className="text-xs text-charcoal/50 font-light">
-                      Capture coordinates for accurate spatial mapping
+                      {t("report_gps_hint")}
                     </span>
                   )}
                   {locationError && (
@@ -228,9 +228,9 @@ const Report = () => {
             <div className="pt-4">
               <button
                 type="submit"
-                className="w-full bg-forest hover:bg-charcoal text-sand hover:text-white py-4 text-xs font-bold uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2 group"
+                className="w-full bg-forest hover:bg-[#D96C4A] text-sand hover:text-white py-4 text-xs font-bold uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2 group border border-transparent shadow-sm"
               >
-                <span>Submit Grievance Log</span>
+                <span>{t("report_btn_submit")}</span>
                 <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
               </button>
             </div>

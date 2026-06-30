@@ -1,4 +1,5 @@
 const Report = require("../models/Report");
+const { sendSMS } = require("../utils/smsService");
 
 exports.getAllReports = async (req, res) => {
   try {
@@ -39,10 +40,17 @@ exports.updateReportStatus = async (req, res) => {
       req.params.id,
       { status },
       { new: true }
-    );
+    ).populate("user", "phone username");
 
     if (!updated) {
       return res.status(404).json({ message: "Report not found" });
+    }
+
+    // Trigger SMS notification
+    if (updated.user && updated.user.phone) {
+      const smsBody = `CivicPulse Update: The status of your anomaly report "${updated.title}" is now: ${status.toUpperCase()}.`;
+      // We don't await this so it runs asynchronously in the background and doesn't delay the HTTP response
+      sendSMS(updated.user.phone, smsBody);
     }
 
     res.json({ message: "Report status updated", report: updated });

@@ -3,6 +3,9 @@ import ReactDOM from "react-dom/client";
 import App from "./App.jsx";
 import "./index.css";
 
+// ✅ Import i18n for translations
+import "./i18n";
+
 // ✅ Import AuthContext
 import { AuthProvider } from "./context/AuthContext";
 
