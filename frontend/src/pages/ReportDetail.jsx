@@ -15,6 +15,7 @@ import {
   CheckCircle,
   Send,
   User,
+  Navigation,
 } from "lucide-react";
 
 const ReportDetail = () => {
@@ -231,6 +232,14 @@ const ReportDetail = () => {
                 <div className="flex items-center gap-1">
                   <Layers size={10} className="text-forest" />
                   <span className="capitalize">{report.area}</span>
+                </div>
+              )}
+              {report.coordinates?.lat && report.coordinates?.lng && (
+                <div className="flex items-center gap-1 text-forest">
+                  <Navigation size={10} />
+                  <span>
+                    {report.coordinates.lat.toFixed(6)}, {report.coordinates.lng.toFixed(6)}
+                  </span>
                 </div>
               )}
             </div>

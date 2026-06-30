@@ -16,6 +16,7 @@ import {
   MessageCircle,
   Users,
   User,
+  Navigation,
 } from "lucide-react";
 
 const CommunityFeed = () => {
@@ -134,11 +135,21 @@ const CommunityFeed = () => {
           <div className="absolute top-0 left-0 w-full h-1 bg-forest"></div>
 
           {loading ? (
-            <div className="py-20 text-center flex flex-col items-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-forest mb-4"></div>
-              <p className="text-xs uppercase tracking-widest text-charcoal/50 font-bold">
-                Loading community reports...
-              </p>
+            <div className="space-y-0 divide-y divide-charcoal/10 animate-pulse">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="p-6">
+                  <div className="flex flex-col sm:flex-row items-start justify-between gap-6">
+                    <div className="flex-1 space-y-4 w-full">
+                      <div className="w-1/4 h-3 bg-charcoal/10"></div>
+                      <div className="w-3/4 h-6 bg-charcoal/10"></div>
+                      <div className="w-full h-4 bg-charcoal/5"></div>
+                      <div className="w-5/6 h-4 bg-charcoal/5"></div>
+                      <div className="w-1/3 h-8 bg-charcoal/10 mt-4"></div>
+                    </div>
+                    <div className="flex-shrink-0 w-full sm:w-28 h-28 bg-charcoal/10"></div>
+                  </div>
+                </div>
+              ))}
             </div>
           ) : reports.length === 0 ? (
             <div className="py-20 px-8 text-center flex flex-col items-center max-w-md mx-auto">
@@ -208,6 +219,14 @@ const CommunityFeed = () => {
                             <div className="flex items-center gap-1">
                               <Layers size={10} className="text-forest" />
                               <span className="capitalize">{r.area}</span>
+                            </div>
+                          )}
+                          {r.coordinates?.lat && r.coordinates?.lng && (
+                            <div className="flex items-center gap-1 text-forest">
+                              <Navigation size={10} />
+                              <span>
+                                {r.coordinates.lat.toFixed(6)}, {r.coordinates.lng.toFixed(6)}
+                              </span>
                             </div>
                           )}
                           <div

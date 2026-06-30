@@ -83,11 +83,24 @@ const AdminDashboard = () => {
         </div>
 
         {loading ? (
-          <div className="py-20 text-center flex flex-col items-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-forest mb-4"></div>
-            <p className="text-xs uppercase tracking-widest text-charcoal/50 font-bold">
-              Aggregating dashboard logs...
-            </p>
+          <div className="space-y-12 animate-pulse">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="bg-white border border-charcoal/10 p-6 relative h-[140px]">
+                  <div className="w-8 h-8 bg-charcoal/10 mb-6"></div>
+                  <div className="w-1/2 h-4 bg-charcoal/10 mb-2"></div>
+                  <div className="w-1/4 h-8 bg-charcoal/10"></div>
+                </div>
+              ))}
+            </div>
+            <div className="bg-white border border-charcoal/10 shadow-sm p-8 min-h-[400px]">
+               <div className="w-1/3 h-6 bg-charcoal/10 mb-8"></div>
+               <div className="space-y-4">
+                 {[1, 2, 3, 4, 5].map((i) => (
+                   <div key={i} className="w-full h-16 bg-charcoal/5 border border-charcoal/10"></div>
+                 ))}
+               </div>
+            </div>
           </div>
         ) : (
           <div className="space-y-12">

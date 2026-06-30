@@ -1,7 +1,7 @@
 import React, { useState, useContext } from "react";
 import api from "../api/axios";
 import { AuthContext } from "../context/AuthContext";
-import { ArrowRight, UploadCloud } from "lucide-react";
+import { ArrowRight, UploadCloud, MapPin, Navigation } from "lucide-react";
 
 const Report = () => {
   const { token } = useContext(AuthContext);
@@ -10,6 +10,33 @@ const Report = () => {
   const [category, setCategory] = useState("");
   const [image, setImage] = useState(null);
   const [message, setMessage] = useState("");
+  const [coordinates, setCoordinates] = useState({ lat: null, lng: null });
+  const [locationError, setLocationError] = useState("");
+  const [fetchingLocation, setFetchingLocation] = useState(false);
+
+  const handleGetLocation = () => {
+    setFetchingLocation(true);
+    setLocationError("");
+    if (!navigator.geolocation) {
+      setLocationError("Geolocation is not supported by your browser.");
+      setFetchingLocation(false);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setCoordinates({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        });
+        setFetchingLocation(false);
+      },
+      (error) => {
+        setLocationError("Unable to retrieve your location. Please ensure location services are enabled.");
+        setFetchingLocation(false);
+      }
+    );
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -19,6 +46,10 @@ const Report = () => {
     formData.append("description", description);
     formData.append("category", category);
     if (image) formData.append("image", image);
+    if (coordinates.lat && coordinates.lng) {
+      formData.append("lat", coordinates.lat);
+      formData.append("lng", coordinates.lng);
+    }
 
     try {
       await api.post("/api/user/report", formData, {
@@ -33,6 +64,7 @@ const Report = () => {
       setDescription("");
       setCategory("");
       setImage(null);
+      setCoordinates({ lat: null, lng: null });
     } catch (err) {
       console.error(err);
       setMessage("Failed to submit report");
@@ -155,6 +187,41 @@ const Report = () => {
                   </button>
                 </div>
               )}
+            </div>
+
+            {/* Geolocation Section */}
+            <div className="flex flex-col">
+              <label className="text-[9px] uppercase tracking-widest text-charcoal/60 font-bold mb-2">
+                Location Coordinates (Optional)
+              </label>
+              
+              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                <button
+                  type="button"
+                  onClick={handleGetLocation}
+                  disabled={fetchingLocation}
+                  className="bg-charcoal/5 hover:bg-charcoal/10 text-charcoal border border-charcoal/20 px-4 py-2 text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center gap-2 disabled:opacity-50"
+                >
+                  <Navigation size={14} className={fetchingLocation ? "animate-pulse" : ""} />
+                  {fetchingLocation ? "Detecting..." : "Detect Location"}
+                </button>
+                
+                <div className="flex-1">
+                  {coordinates.lat && coordinates.lng ? (
+                    <div className="flex items-center gap-2 text-xs text-forest font-medium">
+                      <MapPin size={14} />
+                      <span>{coordinates.lat.toFixed(6)}, {coordinates.lng.toFixed(6)}</span>
+                    </div>
+                  ) : (
+                    <span className="text-xs text-charcoal/50 font-light">
+                      Capture coordinates for accurate spatial mapping
+                    </span>
+                  )}
+                  {locationError && (
+                    <p className="text-xs text-red-600 font-medium mt-1">{locationError}</p>
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* Submit Button */}
