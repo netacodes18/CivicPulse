@@ -20,6 +20,8 @@ const MyReports = () => {
   const { token } = useContext(AuthContext);
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [toast, setToast] = useState(null);
 
   const fetchReports = async () => {
     try {
@@ -43,16 +45,24 @@ const MyReports = () => {
     }
   }, [token]);
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this report?")) return;
+  const triggerDelete = (id) => {
+    setDeleteTarget(id);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
     try {
-      await api.delete(`/api/user/report/${id}`, {
+      await api.delete(`/api/user/report/${deleteTarget}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      alert("Report deleted successfully");
+      setToast({ message: "Log deleted successfully", type: "success" });
+      setTimeout(() => setToast(null), 3000);
+      setDeleteTarget(null);
       fetchReports();
     } catch (err) {
-      alert("Failed to delete report");
+      setToast({ message: "Failed to delete log", type: "error" });
+      setTimeout(() => setToast(null), 3000);
+      setDeleteTarget(null);
     }
   };
 
@@ -188,7 +198,7 @@ const MyReports = () => {
                           </div>
 
                           <button
-                            onClick={() => handleDelete(r._id)}
+                            onClick={() => triggerDelete(r._id)}
                             className="text-red-700 hover:text-red-950 text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center gap-1 py-1"
                           >
                             <Trash2 size={12} />
@@ -241,6 +251,53 @@ const MyReports = () => {
             </div>
           </div>
         )}
+
+        {/* Confirmation Modal */}
+        {deleteTarget && (
+          <div className="fixed inset-0 bg-charcoal/40 backdrop-blur-sm z-50 flex items-center justify-center p-6">
+            <div className="bg-white border border-charcoal/10 max-w-sm w-full p-8 shadow-2xl relative animate-fade-in">
+              <div className="absolute top-0 left-0 w-full h-1 bg-forest"></div>
+              
+              <h3 className="text-sm font-semibold uppercase tracking-widest text-charcoal mb-3 text-center">
+                Confirm Deletion
+              </h3>
+              <p className="text-xs text-charcoal/70 leading-relaxed text-center mb-8">
+                Are you sure you want to permanently delete this spatial anomaly log? This action cannot be undone.
+              </p>
+              
+              <div className="flex gap-4">
+                <button
+                  onClick={() => setDeleteTarget(null)}
+                  className="flex-1 border border-charcoal/20 hover:border-charcoal text-charcoal py-3 text-[10px] font-bold uppercase tracking-widest transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  className="flex-1 bg-red-700 hover:bg-red-900 text-white py-3 text-[10px] font-bold uppercase tracking-widest transition-all"
+                >
+                  Delete Log
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Toast Notification */}
+        {toast && (
+          <div className="fixed bottom-6 right-6 z-50 animate-slide-in">
+            <div className={`p-4 border shadow-xl flex items-center gap-3 ${
+              toast.type === "success" 
+                ? "bg-forest border-forest text-sand" 
+                : "bg-red-900 border-red-950 text-white"
+            }`}>
+              <span className="text-xs uppercase tracking-widest font-bold">
+                {toast.message}
+              </span>
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );

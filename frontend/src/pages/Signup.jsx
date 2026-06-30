@@ -13,6 +13,8 @@ const Signup = () => {
     area: "",
   });
 
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -21,13 +23,17 @@ const Signup = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setMessage("");
+    setError("");
 
     try {
       await api.post("/api/auth/signup", form);
-      alert("Signup successful! Please login.");
-      navigate("/login");
+      setMessage("Signup successful! Redirecting to login...");
+      setTimeout(() => {
+        navigate("/login");
+      }, 2000);
     } catch (err) {
-      alert(err.response?.data?.message || "Signup failed.");
+      setError(err.response?.data?.message || "Signup failed.");
     }
   };
 
@@ -59,6 +65,22 @@ const Signup = () => {
                 Account Details
               </h2>
             </div>
+
+            {/* Inline Message Notifications */}
+            {message && (
+              <div className="bg-forest/5 border border-forest/20 p-3 text-center">
+                <p className="text-forest text-xs font-semibold uppercase tracking-wider">
+                  {message}
+                </p>
+              </div>
+            )}
+            {error && (
+              <div className="bg-red-50 border-l-2 border-red-500 p-3">
+                <p className="text-red-800 text-xs text-center font-medium">
+                  {error}
+                </p>
+              </div>
+            )}
 
             <div className="space-y-5">
               {/* Username */}
