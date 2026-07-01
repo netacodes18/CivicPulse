@@ -7,6 +7,11 @@ let channel = null;
 let connection = null;
 
 const connectRabbitMQ = async () => {
+  if (process.env.NODE_ENV === "production" && !process.env.RABBITMQ_URI) {
+    console.log("🟡 No RABBITMQ_URI provided in production. Running in MOCK MODE.");
+    return;
+  }
+
   try {
     connection = await amqp.connect(RABBITMQ_URI);
     channel = await connection.createChannel();

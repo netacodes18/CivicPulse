@@ -5,6 +5,11 @@ const RABBITMQ_URI = process.env.RABBITMQ_URI || "amqp://localhost";
 const QUEUE_NAME = "notification_queue";
 
 const startWorker = async () => {
+  if (process.env.NODE_ENV === "production" && !process.env.RABBITMQ_URI) {
+    console.log("🟡 No RABBITMQ_URI provided in production. Worker running in MOCK MODE.");
+    return;
+  }
+
   try {
     const connection = await amqp.connect(RABBITMQ_URI);
     const channel = await connection.createChannel();

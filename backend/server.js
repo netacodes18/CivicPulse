@@ -103,9 +103,11 @@ const { connectRabbitMQ } = require("./utils/rabbitmq");
 
 mongoose
   .connect(process.env.MONGO_URI)
-  .then(async () => {
+  .then(() => {
     console.log("📦 Connected to MongoDB");
-    await connectRabbitMQ(); // Connect to RabbitMQ
+    
+    // Connect to RabbitMQ asynchronously (do not await, don't block Express port binding)
+    connectRabbitMQ(); 
 
     const PORT = process.env.PORT || 5000;
     app.listen(PORT, () => {
