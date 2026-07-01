@@ -19,12 +19,11 @@ exports.createReport = async (req, res) => {
     const { title, description, category, lat, lng } = req.body;
 
     // Use filename to avoid Windows backslash issues
+   // Use X-Forwarded-Proto to handle reverse proxies (like Render) correctly, or fallback to req.protocol
+   const protocol = req.headers["x-forwarded-proto"] || req.protocol;
    const filename = req.file?.filename || "";
    const imageUrl = filename
-     ? `${req.protocol}://${req.get("host")}/uploads/${filename}`.replace(
-         /\\/g,
-         "/"
-       )
+     ? `${protocol}://${req.get("host")}/uploads/${filename}`.replace(/\\/g, "/")
      : "";
 
     const report = new Report({
