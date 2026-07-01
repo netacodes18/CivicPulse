@@ -17,7 +17,7 @@ const connectRabbitMQ = async () => {
     channel = await connection.createChannel();
     console.log("🐰 Connected to RabbitMQ");
   } catch (error) {
-    console.error("🔴 Failed to connect to RabbitMQ:", error.message);
+    console.error("🔴 Failed to connect to RabbitMQ:", error);
     console.log("   (Make sure RabbitMQ is running. e.g., docker run -d --name rabbitmq -p 5672:5672 rabbitmq:3)");
   }
 };

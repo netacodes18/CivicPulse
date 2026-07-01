@@ -48,7 +48,7 @@ const startWorker = async () => {
     });
 
   } catch (error) {
-    console.error("🔴 Worker Error:", error.message);
+    console.error("🔴 Worker Error:", error);
     console.log("   (Make sure RabbitMQ is running or your RABBITMQ_URI is correct)");
   }
 };
