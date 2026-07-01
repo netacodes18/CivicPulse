@@ -55,8 +55,28 @@ exports.updateReportStatus = async (req, res) => {
         reportId: updated._id,
       };
       
-      // Publish event asynchronously to the broker
+      // Publish SMS event asynchronously to the broker
       publishMessage("notification_queue", messageData);
+
+      // Publish EMAIL event asynchronously to the broker
+      if (updated.user.email) {
+        const emailHtml = `
+          <div style="font-family: sans-serif; padding: 20px; color: #333;">
+            <h2 style="color: #1c523c;">CivicPulse Status Update</h2>
+            <p>Hello ${updated.user.username},</p>
+            <p>The status of your anomaly report <strong>"${updated.title}"</strong> has been updated to:</p>
+            <h3 style="color: #D96C4A;">${status.toUpperCase()}</h3>
+            <br/>
+            <p>Thank you for using CivicPulse to keep our community safe.</p>
+          </div>
+        `;
+        publishMessage("notification_queue", {
+          type: "EMAIL",
+          to: updated.user.email,
+          subject: `Status Update: ${updated.title}`,
+          html: emailHtml,
+        });
+      }
     }
 
     res.json({ message: "Report status updated", report: updated });

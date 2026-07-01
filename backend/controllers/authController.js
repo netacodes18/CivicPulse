@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const User = require("../models/User");
+const { publishMessage } = require("../utils/rabbitmq");
 
 // 🔥 Token generator (NORMALIZED ROLE)
 const generateToken = (user) => {
@@ -62,6 +63,26 @@ const signup = async (req, res) => {
       },
       token,
     });
+
+    // Fire asynchronous Welcome Email event
+    const welcomeHtml = `
+      <div style="font-family: sans-serif; padding: 20px; color: #333;">
+        <h2 style="color: #1c523c;">Welcome to CivicPulse, ${newUser.username}!</h2>
+        <p>You have successfully joined the civic response network. Your voice matters in stewarding our local neighborhoods.</p>
+        <p><strong>Your Role:</strong> ${newUser.role.toUpperCase()}</p>
+        <p><strong>Region:</strong> ${newUser.state}</p>
+        <br/>
+        <p>You can now start reporting urban anomalies directly to municipal authorities.</p>
+        <p>Best,<br/>The CivicPulse Team</p>
+      </div>
+    `;
+    publishMessage("notification_queue", {
+      type: "EMAIL",
+      to: newUser.email,
+      subject: "Welcome to CivicPulse!",
+      html: welcomeHtml,
+    });
+
   } catch (err) {
     res.status(500).json({ message: "Signup failed", error: err.message });
   }

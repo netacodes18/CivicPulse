@@ -1,4 +1,5 @@
 const amqp = require("amqplib");
+const { sendEmail } = require("../utils/emailService");
 
 const RABBITMQ_URI = process.env.RABBITMQ_URI || "amqp://localhost";
 const QUEUE_NAME = "notification_queue";
@@ -21,13 +22,21 @@ const startWorker = async () => {
         
         console.log("\n================ [WORKER: NEW MESSAGE] ================");
         console.log(`📨 Received type: ${payload.type}`);
-        console.log(`📱 Sending to: ${payload.phone}`);
-        console.log(`💬 Message body: ${payload.body}`);
+        if (payload.type === "SMS") {
+          console.log(`📱 Sending SMS to: ${payload.phone}`);
+          console.log(`💬 Message body: ${payload.body}`);
+        } else if (payload.type === "EMAIL") {
+          console.log(`📧 Sending Email to: ${payload.to}`);
+          console.log(`✉️ Subject: ${payload.subject}`);
+          // Send the actual email (or mock it)
+          await sendEmail(payload.to, payload.subject, payload.html);
+        }
+        
         console.log("=======================================================\n");
 
-        // Simulate network delay / heavy processing
+        // Simulate network delay / heavy processing for SMS (Email handles its own await)
         setTimeout(() => {
-          console.log(`✅ Successfully processed message for report ${payload.reportId}`);
+          console.log(`✅ Successfully processed ${payload.type} event.`);
           channel.ack(msg); // Acknowledge message so it gets removed from the queue
         }, 2000);
       }
