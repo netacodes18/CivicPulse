@@ -110,6 +110,9 @@ mongoose
     const PORT = process.env.PORT || 5000;
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
+      
+      // 🔥 START BACKGROUND WORKER IN THE SAME PROCESS (Crucial for Render Free Tier)
+      require("./workers/notificationWorker.js");
     });
   })
   .catch((err) => {
