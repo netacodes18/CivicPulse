@@ -1,5 +1,5 @@
 const Report = require("../models/Report");
-const { sendSMS } = require("../utils/smsService");
+const { publishMessage } = require("../utils/rabbitmq");
 
 exports.getAllReports = async (req, res) => {
   try {
@@ -46,11 +46,17 @@ exports.updateReportStatus = async (req, res) => {
       return res.status(404).json({ message: "Report not found" });
     }
 
-    // Trigger SMS notification
+    // Trigger RabbitMQ Notification Event
     if (updated.user && updated.user.phone) {
-      const smsBody = `CivicPulse Update: The status of your anomaly report "${updated.title}" is now: ${status.toUpperCase()}.`;
-      // We don't await this so it runs asynchronously in the background and doesn't delay the HTTP response
-      sendSMS(updated.user.phone, smsBody);
+      const messageData = {
+        type: "SMS",
+        phone: updated.user.phone,
+        body: `CivicPulse Update: The status of your anomaly report "${updated.title}" is now: ${status.toUpperCase()}.`,
+        reportId: updated._id,
+      };
+      
+      // Publish event asynchronously to the broker
+      publishMessage("notification_queue", messageData);
     }
 
     res.json({ message: "Report status updated", report: updated });

@@ -97,17 +97,20 @@ app.use((err, req, res, next) => {
 });
 
 // ===================================================
-// MongoDB + Server Start
+// MongoDB, RabbitMQ + Server Start
 // ===================================================
-const PORT = process.env.PORT || 10000;
+const { connectRabbitMQ } = require("./utils/rabbitmq");
 
 mongoose
   .connect(process.env.MONGO_URI)
-  .then(() => {
+  .then(async () => {
     console.log("📦 Connected to MongoDB");
-    app.listen(PORT, () =>
-      console.log(`🚀 Server running on port ${PORT}`)
-    );
+    await connectRabbitMQ(); // Connect to RabbitMQ
+
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+    });
   })
   .catch((err) => {
     console.error("❌ Failed to connect to MongoDB:", err.message);
