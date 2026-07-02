@@ -30,19 +30,28 @@ exports.getAllReports = async (req, res) => {
 // PUT update status of any report (admin)
 exports.updateReportStatus = async (req, res) => {
   try {
-    const { status } = req.body;
+    const { status, version } = req.body;
 
     if (!["pending", "in-progress", "resolved"].includes(status)) {
       return res.status(400).json({ message: "Invalid status value" });
     }
 
-    const updated = await Report.findByIdAndUpdate(
-      req.params.id,
-      { status },
+    if (version === undefined) {
+      return res.status(400).json({ message: "Version (__v) is required for concurrency control" });
+    }
+
+    const updated = await Report.findOneAndUpdate(
+      { _id: req.params.id, __v: version },
+      { $set: { status }, $inc: { __v: 1 } },
       { new: true }
-    ).populate("user", "phone username");
+    ).populate("user", "phone username email");
 
     if (!updated) {
+      // If the report exists but the version doesn't match, it was modified by someone else
+      const existingReport = await Report.findById(req.params.id);
+      if (existingReport) {
+        return res.status(409).json({ message: "Conflict: This report was recently updated by another administrator. Please refresh the dashboard to see the latest status." });
+      }
       return res.status(404).json({ message: "Report not found" });
     }
 

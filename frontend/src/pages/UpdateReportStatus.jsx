@@ -9,6 +9,7 @@ const UpdateReportStatus = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [reportId, setReportId] = useState("");
+  const [version, setVersion] = useState(undefined);
   const [status, setStatus] = useState("pending");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -16,6 +17,9 @@ const UpdateReportStatus = () => {
   useEffect(() => {
     if (location.state?.reportId) {
       setReportId(location.state.reportId);
+    }
+    if (location.state?.version !== undefined) {
+      setVersion(location.state.version);
     }
   }, [location.state]);
 
@@ -25,9 +29,14 @@ const UpdateReportStatus = () => {
     setError("");
 
     try {
+      const payload = { status };
+      if (version !== undefined) {
+        payload.version = version;
+      }
+      
       const res = await api.put(
         `/api/admin/report/${reportId}/status`,
-        { status },
+        payload,
         {
           headers: {
             Authorization: `Bearer ${token}`,

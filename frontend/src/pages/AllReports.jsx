@@ -218,7 +218,7 @@ const AllReports = () => {
                           </div>
 
                           <button
-                            onClick={() => navigate("/admin/update-status", { state: { reportId: r._id } })}
+                            onClick={() => navigate("/admin/update-status", { state: { reportId: r._id, version: r.__v } })}
                             className="bg-charcoal text-sand hover:bg-forest hover:text-sand text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 transition-all"
                           >
                             Update Status

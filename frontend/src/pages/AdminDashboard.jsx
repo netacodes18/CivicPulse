@@ -216,7 +216,7 @@ const AdminDashboard = () => {
                           </span>
                           
                           <button
-                            onClick={() => navigate("/admin/update-status", { state: { reportId: report._id } })}
+                            onClick={() => navigate("/admin/update-status", { state: { reportId: report._id, version: report.__v } })}
                             className="bg-charcoal/5 hover:bg-forest hover:text-sand text-charcoal border border-charcoal/10 hover:border-forest px-4 py-2 text-[10px] font-bold uppercase tracking-wider transition-all"
                           >
                             Restore Asset
