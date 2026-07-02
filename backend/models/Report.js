@@ -19,6 +19,7 @@ const reportSchema = new mongoose.Schema(
       lat: { type: Number, default: null },
       lng: { type: Number, default: null },
     },
+    idempotencyKey: { type: String, unique: true, sparse: true },
   },
   { timestamps: true }
 );

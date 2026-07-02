@@ -17,6 +17,7 @@ exports.getUserProfile = (req, res) => {
 exports.createReport = async (req, res) => {
   try {
     const { title, description, category, lat, lng } = req.body;
+    const idempotencyKey = req.headers["idempotency-key"];
 
     // Use filename to avoid Windows backslash issues
    // Use X-Forwarded-Proto to handle reverse proxies (like Render) correctly, or fallback to req.protocol
@@ -35,11 +36,17 @@ exports.createReport = async (req, res) => {
       state: req.user.state,
       area: req.user.area,
       coordinates: lat && lng ? { lat: parseFloat(lat), lng: parseFloat(lng) } : undefined,
+      idempotencyKey: idempotencyKey || undefined, // only set if provided
     });
 
     await report.save();
     res.status(201).json({ message: "Report submitted", report });
   } catch (err) {
+    // 11000 is the MongoDB duplicate key error code
+    if (err.code === 11000 && err.keyPattern && err.keyPattern.idempotencyKey) {
+      console.log(`🟡 Idempotent request blocked: duplicate key ${err.keyValue.idempotencyKey}`);
+      return res.status(200).json({ message: "Report already submitted (Idempotent response)" });
+    }
     console.error("Error in createReport:", err);
     res
       .status(500)

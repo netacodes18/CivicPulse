@@ -15,6 +15,7 @@ const Report = () => {
   const [coordinates, setCoordinates] = useState({ lat: null, lng: null });
   const [locationError, setLocationError] = useState("");
   const [fetchingLocation, setFetchingLocation] = useState(false);
+  const [idempotencyKey, setIdempotencyKey] = useState(() => crypto.randomUUID());
 
   const handleGetLocation = () => {
     setFetchingLocation(true);
@@ -58,6 +59,7 @@ const Report = () => {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data",
+          "Idempotency-Key": idempotencyKey,
         },
       });
 
@@ -67,6 +69,7 @@ const Report = () => {
       setCategory("");
       setImage(null);
       setCoordinates({ lat: null, lng: null });
+      setIdempotencyKey(crypto.randomUUID()); // Reset for the next submission
     } catch (err) {
       console.error(err);
       setMessage("Failed to submit report");
