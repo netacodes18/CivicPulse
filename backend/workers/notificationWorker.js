@@ -27,23 +27,23 @@ const startWorker = async () => {
         
         console.log("\n================ [WORKER: NEW MESSAGE] ================");
         console.log(`📨 Received type: ${payload.type}`);
-        if (payload.type === "SMS") {
-          console.log(`📱 Sending SMS to: ${payload.phone}`);
-          console.log(`💬 Message body: ${payload.body}`);
-        } else if (payload.type === "EMAIL") {
-          console.log(`📧 Sending Email to: ${payload.to}`);
-          console.log(`✉️ Subject: ${payload.subject}`);
-          // Send the actual email (or mock it)
-          await sendEmail(payload.to, payload.subject, payload.html);
+        try {
+          if (payload.type && payload.type.toUpperCase() === "EMAIL") {
+            console.log(`📧 Sending Email to: ${payload.to}`);
+            console.log(`✉️ Subject: ${payload.subject}`);
+            await sendEmail(payload.to, payload.subject, payload.html);
+            console.log(`✅ Worker successfully processed email to ${payload.to}`);
+          } else if (payload.type && payload.type.toUpperCase() === "SMS") {
+            console.log(`📱 Sending SMS to: ${payload.phone}`);
+            console.log(`💬 Message body: ${payload.body}`);
+            console.log(`✅ Worker processed SMS event (simulated)`);
+          }
+          channel.ack(msg);
+        } catch (error) {
+          console.error("🔴 Error processing message:", error);
+          channel.nack(msg, false, false); // Do not requeue if processing fails
         }
         
-        console.log("=======================================================\n");
-
-        // Simulate network delay / heavy processing for SMS (Email handles its own await)
-        setTimeout(() => {
-          console.log(`✅ Successfully processed ${payload.type} event.`);
-          channel.ack(msg); // Acknowledge message so it gets removed from the queue
-        }, 2000);
       }
     });
 
