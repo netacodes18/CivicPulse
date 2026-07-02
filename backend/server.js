@@ -81,8 +81,18 @@ app.use("/api/admin", adminRoutes);
 // ===================================================
 // Health Check
 // ===================================================
-app.get("/", (req, res) => {
-  res.status(200).send("CivicPulse Backend Running 🚀");
+app.get(["/", "/api/health"], (req, res) => {
+  const memUsage = process.memoryUsage();
+  res.status(200).json({
+    status: "ok",
+    message: "CivicPulse Backend Running 🚀",
+    uptime: process.uptime(),
+    memory: {
+      rss: `${Math.round(memUsage.rss / 1024 / 1024)} MB`,
+      heapTotal: `${Math.round(memUsage.heapTotal / 1024 / 1024)} MB`,
+      heapUsed: `${Math.round(memUsage.heapUsed / 1024 / 1024)} MB`,
+    }
+  });
 });
 
 // ===================================================
