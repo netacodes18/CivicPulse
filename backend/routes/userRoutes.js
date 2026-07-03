@@ -16,14 +16,14 @@ const {
   getComments,
 } = require("../controllers/userController");
 
-// 🔥 PROFILE
+// PROFILE
 router.get(
   "/profile",
   authMiddleware,
   getUserProfile
 );
 
-// 🔥 CREATE REPORT
+// CREATE REPORT
 router.post(
   "/report",
   authMiddleware,
@@ -31,56 +31,56 @@ router.post(
   createReport
 );
 
-// 🔥 MY REPORTS
+//MY REPORTS
 router.get(
   "/my-reports",
   authMiddleware,
   getMyReports
 );
 
-// 🔥 COMMUNITY FEED (all reports in user's state)
+//COMMUNITY FEED (all reports in user's state)
 router.get(
   "/community",
   authMiddleware,
   getCommunityReports
 );
 
-// 🔥 GET SINGLE REPORT (detail page)
+//  GET SINGLE REPORT (detail page)
 router.get(
   "/report/:id",
   authMiddleware,
   getReportById
 );
 
-// 🔥 UPDATE REPORT
+// UPDATE REPORT
 router.put(
   "/report/:id",
   authMiddleware,
   updateReport
 );
 
-// 🔥 DELETE REPORT
+// DELETE REPORT
 router.delete(
   "/report/:id",
   authMiddleware,
   deleteReport
 );
 
-// 🔥 UPVOTE TOGGLE
+//  UPVOTE TOGGLE
 router.post(
   "/report/:id/upvote",
   authMiddleware,
   toggleUpvote
 );
 
-// 🔥 CREATE COMMENT
+//  CREATE COMMENT
 router.post(
   "/report/:id/comment",
   authMiddleware,
   createComment
 );
 
-// 🔥 GET COMMENTS
+// GET COMMENTS
 router.get(
   "/report/:id/comments",
   authMiddleware,

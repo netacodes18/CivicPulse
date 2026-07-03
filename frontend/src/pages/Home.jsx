@@ -237,7 +237,7 @@ const Home = () => {
         style={{
           backgroundImage: `
             linear-gradient(rgba(17,26,23,0.95), rgba(17,26,23,0.85)),
-            url('https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?q=80&w=1920&auto=format&fit=crop')
+            url('https://images.unsplash.com/photo-1524492412937-b28074a5d7da?q=80&w=1920&auto=format&fit=crop')
           `,
           backgroundSize: "cover",
           backgroundPosition: "center",

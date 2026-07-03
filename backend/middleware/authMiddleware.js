@@ -1,8 +1,5 @@
 const jwt = require("jsonwebtoken");
 
-// ===============================
-// 🔐 AUTH MIDDLEWARE
-// ===============================
 const authMiddleware = (req, res, next) => {
   const authHeader = req.headers.authorization;
 
@@ -16,7 +13,6 @@ const authMiddleware = (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded;
 
-    // 🔍 DEBUG: confirm token payload
     console.log("✅ TOKEN DECODED:", {
       id: decoded.id,
       role: decoded.role,
@@ -29,12 +25,8 @@ const authMiddleware = (req, res, next) => {
   }
 };
 
-// ===============================
-// 🔒 ROLE GUARD (DEBUG ENABLED)
-// ===============================
 const requireRole = (role) => {
   return (req, res, next) => {
-    // 🔍 DEBUG: role comparison
     console.log("🔍 ROLE CHECK:", {
       fromToken: req.user?.role,
       required: role,
