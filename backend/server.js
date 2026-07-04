@@ -115,18 +115,17 @@ mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {
     console.log("📦 Connected to MongoDB");
-    
-    // Connect to RabbitMQ asynchronously (do not await, don't block Express port binding)
+    // Connect to RabbitMQ asynchronously
     connectRabbitMQ(); 
-
-    const PORT = process.env.PORT || 5000;
-    app.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT}`);
-      
-      // 🔥 START BACKGROUND WORKER IN THE SAME PROCESS (Crucial for Render Free Tier)
-      require("./workers/notificationWorker.js");
-    });
   })
   .catch((err) => {
     console.error("❌ Failed to connect to MongoDB:", err.message);
   });
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+  
+  // 🔥 START BACKGROUND WORKER IN THE SAME PROCESS (Crucial for Render Free Tier)
+  require("./workers/notificationWorker.js");
+});
