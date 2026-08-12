@@ -57,13 +57,28 @@ exports.createReport = async (req, res) => {
     const { title, description, category, lat, lng, area, pincode } = req.body;
     const idempotencyKey = req.headers["idempotency-key"];
 
-    // Use filename to avoid Windows backslash issues
-   // Use X-Forwarded-Proto to handle reverse proxies (like Render) correctly, or fallback to req.protocol
-   const protocol = req.headers["x-forwarded-proto"] || req.protocol;
-   const filename = req.file?.filename || "";
-   const imageUrl = filename
-     ? `${protocol}://${req.get("host")}/uploads/${filename}`.replace(/\\/g, "/")
-     : "";
+    // Handle image upload with compression
+    const protocol = req.headers["x-forwarded-proto"] || req.protocol;
+    let filename = "";
+    
+    if (req.file && req.file.buffer) {
+      const sharp = require('sharp');
+      const path = require('path');
+      const fs = require('fs');
+      
+      filename = `${Date.now()}-${Math.round(Math.random() * 1E9)}.webp`;
+      const filepath = path.join(__dirname, "..", "uploads", filename);
+      
+      // Compress and resize image
+      await sharp(req.file.buffer)
+        .resize(800, 800, { fit: 'inside', withoutEnlargement: true })
+        .webp({ quality: 80 })
+        .toFile(filepath);
+    }
+    
+    const imageUrl = filename
+      ? `${protocol}://${req.get("host")}/uploads/${filename}`
+      : "";
 
     // Auto-assign department based on the selected category
     let assignedDepartment = null;
@@ -111,10 +126,22 @@ exports.createReport = async (req, res) => {
 // GET all reports submitted by the logged-in user
 exports.getMyReports = async (req, res) => {
   try {
-    const reports = await Report.find({ user: req.user.id }).sort({
-      createdAt: -1,
+    const { page = 1, limit = 20 } = req.query;
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    
+    const reports = await Report.find({ user: req.user.id })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit));
+      
+    const total = await Report.countDocuments({ user: req.user.id });
+      
+    res.json({
+      reports,
+      currentPage: parseInt(page),
+      totalPages: Math.ceil(total / parseInt(limit)),
+      totalReports: total
     });
-    res.json({ reports });
   } catch (err) {
     res
       .status(500)
@@ -124,16 +151,27 @@ exports.getMyReports = async (req, res) => {
 
 exports.getCommunityReports = async (req, res) => {
   try {
-    const { area, pincode } = req.query;
+    const { area, pincode, page = 1, limit = 20 } = req.query;
     const filter = { state: req.user.state };
     if (area) filter.area = area;
     if (pincode) filter.pincode = pincode;
 
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
     const reports = await Report.find(filter)
       .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit))
       .populate("user", "username state area");
 
-    res.json({ reports });
+    const total = await Report.countDocuments(filter);
+
+    res.json({
+      reports,
+      currentPage: parseInt(page),
+      totalPages: Math.ceil(total / parseInt(limit)),
+      totalReports: total
+    });
   } catch (err) {
     res
       .status(500)

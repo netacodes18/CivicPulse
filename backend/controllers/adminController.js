@@ -11,7 +11,7 @@ exports.getAllReports = async (req, res) => {
   try {
     const adminState = req.user.state;
     const adminPincode = req.user.pincode;
-    const { pincode } = req.query;
+    const { pincode, page = 1, limit = 25 } = req.query;
 
     let filter = {
       state: { $regex: new RegExp(`^${adminState}$`, 'i') },
@@ -27,12 +27,22 @@ exports.getAllReports = async (req, res) => {
       filter.category = req.user.department;
     }
 
-    const reports = await Report.find(filter).populate(
-      "user",
-      "username email state area"
-    );
+    const skip = (parseInt(page) - 1) * parseInt(limit);
 
-    res.json({ reports });
+    const reports = await Report.find(filter)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit))
+      .populate("user", "username email state area");
+
+    const total = await Report.countDocuments(filter);
+
+    res.json({
+      reports,
+      currentPage: parseInt(page),
+      totalPages: Math.ceil(total / parseInt(limit)),
+      totalReports: total
+    });
   } catch (err) {
     res
       .status(500)

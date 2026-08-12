@@ -20,7 +20,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-white/90 backdrop-blur-md border-b border-charcoal/10 px-6 py-4 sticky top-0 z-50 transition-all duration-300">
+    <nav className="bg-white/40 backdrop-blur-xl border-b border-white/40 px-6 py-4 sticky top-0 z-50 transition-all duration-300 shadow-sm">
       <div className="max-w-7xl mx-auto flex justify-between items-center">
         {/* Brand Logo */}
         <div className="flex items-center space-x-2">

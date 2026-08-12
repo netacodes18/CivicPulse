@@ -63,39 +63,46 @@ const Landing = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#F8FAF9] font-sans overflow-x-hidden">
+    <div className="min-h-screen bg-slate-50 font-sans overflow-x-hidden relative">
+      <main>
+      
+      {/* Mesh Gradient Background */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
+        <div className="absolute -top-[20%] -left-[10%] w-[70%] h-[70%] rounded-full bg-emerald-200/40 mix-blend-multiply filter blur-3xl opacity-70 animate-blob"></div>
+        <div className="absolute top-[10%] -right-[10%] w-[70%] h-[70%] rounded-full bg-teal-200/40 mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-2000"></div>
+        <div className="absolute -bottom-[20%] left-[20%] w-[70%] h-[70%] rounded-full bg-green-200/40 mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-4000"></div>
+      </div>
       
       {/* 1. TOP NAVBAR */}
       <Navbar />
 
       {/* 2. HERO SECTION */}
-      <div className="relative pt-32 pb-20 lg:pt-40 lg:pb-28 overflow-hidden">
+      <div className="relative pt-12 pb-12 lg:pt-20 lg:pb-24 overflow-hidden z-10">
         
-        {/* Abstract background shapes */}
-        <div className="absolute top-1/2 -translate-y-1/2 right-0 w-[800px] h-[800px] bg-brand/5 rounded-full blur-3xl -z-10"></div>
-        <div className="absolute bottom-0 left-0 w-full h-48 bg-gradient-to-t from-brand/10 to-transparent -z-10"></div>
-
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-8">
+          <div className="flex flex-col lg:flex-row items-center gap-16 lg:gap-12">
             
             {/* Left Content */}
-            <div className="flex-1 max-w-2xl">
-              <h1 className="text-5xl lg:text-7xl font-extrabold text-gray-900 leading-[1.1] tracking-tight mb-6">
+            <div className="flex-1 max-w-2xl relative z-20">
+              <div className="inline-block mb-4 px-3 py-1.5 rounded-full bg-white/80 backdrop-blur-md border border-white/80 shadow-sm text-xs font-bold text-emerald-800 uppercase tracking-widest">
+                Reimagining Civic Tech
+              </div>
+              <h1 className="text-5xl lg:text-7xl font-extrabold text-slate-900 leading-[1.05] tracking-tight mb-6">
                 Your Voice.<br />
                 Your City.<br />
-                Your <span className="text-brand">Civic Pulse.</span>
+                Your <span className="bg-clip-text text-transparent bg-gradient-to-r from-emerald-600 to-teal-500">Civic Pulse.</span>
               </h1>
-              <p className="text-lg text-gray-600 mb-8 max-w-xl">
+              <p className="text-lg text-slate-600 mb-10 max-w-xl leading-relaxed">
                 Report local issues, track their progress, and work together with your community to make your city better.
               </p>
               
-              <div className="flex flex-wrap items-center gap-4 mb-10">
-                <Link to="/signup" className="flex items-center gap-2 bg-[#1e8f5e] text-white px-6 py-3.5 rounded-xl font-bold hover:bg-[#156e47] transition-all shadow-lg shadow-[#1e8f5e]/20">
-                  <Edit3 size={18} />
+              <div className="flex flex-wrap items-center gap-4 mb-12">
+                <Link to="/signup" className="flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-8 py-4 rounded-2xl font-bold hover:scale-105 transition-transform duration-300 shadow-xl shadow-emerald-600/20">
+                  <Edit3 size={20} />
                   <span>Report an Issue</span>
                 </Link>
-                <Link to="/login" className="flex items-center gap-2 bg-white text-[#1e8f5e] border border-gray-200 shadow-sm px-6 py-3.5 rounded-xl font-bold hover:border-[#1e8f5e] transition-all">
-                  <Search size={18} />
+                <Link to="/login" className="flex items-center gap-2 bg-white/80 backdrop-blur-md text-slate-700 border border-white shadow-sm px-8 py-4 rounded-2xl font-bold hover:bg-white hover:scale-105 transition-all duration-300">
+                  <Search size={20} />
                   <span>Explore Issues</span>
                 </Link>
               </div>
@@ -115,14 +122,14 @@ const Landing = () => {
             </div>
 
             {/* Right Dashboard Mockup */}
-            <div className="flex-1 relative w-full max-w-[700px] lg:max-w-none ml-auto">
+            <div className="flex-1 relative w-full max-w-[700px] lg:max-w-none ml-auto animate-float-slow z-20">
               {/* City skyline background hint behind dashboard */}
               <div className="absolute -bottom-20 -left-40 right-0 h-40 bg-[url('https://www.svgrepo.com/show/285098/cityscape-buildings.svg')] bg-repeat-x bg-bottom opacity-10 pointer-events-none z-0 scale-150"></div>
 
-              <div className="bg-white rounded-2xl shadow-[0_20px_50px_-12px_rgba(0,0,0,0.15)] overflow-hidden flex relative z-10 border border-gray-100">
+              <div className="bg-white/70 backdrop-blur-2xl rounded-2xl shadow-[0_20px_50px_-12px_rgba(0,0,0,0.15)] overflow-hidden flex relative z-10 border border-white/50">
                 
                 {/* Mock Sidebar */}
-                <div className="w-56 bg-[#0b4d32] text-white p-4 hidden sm:flex flex-col flex-shrink-0 relative">
+                <div className="w-56 bg-brand-dark/95 backdrop-blur-md text-white p-4 hidden sm:flex flex-col flex-shrink-0 relative border-r border-brand-light/20">
                   <div className="flex items-center gap-2 mb-8 mt-2 px-2">
                     <div className="bg-white/20 p-1 rounded-full"><MapPin size={20} className="text-white fill-white" /></div>
                     <span className="font-bold text-lg tracking-wide">Civic Pulse</span>
@@ -150,7 +157,7 @@ const Landing = () => {
 
                   <div className="mt-2 bg-[#093d28] p-3 rounded-xl flex items-center justify-between border border-[#135c3e]">
                      <div className="flex items-center gap-3">
-                       <img src={av1} className="w-8 h-8 rounded-full border border-white/20" />
+                       <img src={av1} alt="User avatar" className="w-8 h-8 rounded-full border border-white/20" />
                        <div className="flex flex-col leading-none">
                          <span className="text-sm font-semibold tracking-wide">Utkarsh Pratap</span>
                          <span className="text-[10px] text-white/60 mt-1">Lucknow, UP</span>
@@ -161,12 +168,12 @@ const Landing = () => {
                 </div>
 
                 {/* Mock Main Area */}
-                <div className="flex-1 p-6 bg-white flex flex-col relative z-0">
+                <div className="flex-1 p-6 bg-white/60 flex flex-col relative z-0">
                   
                   {/* Top Header */}
                   <div className="flex justify-between items-start mb-8">
                     <div>
-                      <h3 className="text-[18px] font-extrabold text-gray-900 mb-1">Good morning, Utkarsh! 👋</h3>
+                      <p className="text-[18px] font-extrabold text-gray-900 mb-1">Good morning, Utkarsh! 👋</p>
                       <p className="text-[11px] text-gray-500">Let's make our city a better place to live.</p>
                     </div>
                     <div className="flex items-center gap-4">
@@ -177,7 +184,7 @@ const Landing = () => {
                         <Bell size={20} />
                         <span className="absolute top-0 right-0 w-2 h-2 bg-[#1e8f5e] rounded-full border-2 border-white"></span>
                       </div>
-                      <img src={av1} className="w-8 h-8 rounded-full border border-gray-200 shadow-sm cursor-pointer" />
+                      <img src={av1} alt="Profile avatar" className="w-8 h-8 rounded-full border border-gray-200 shadow-sm cursor-pointer" />
                     </div>
                   </div>
 
@@ -227,7 +234,7 @@ const Landing = () => {
 
                   {/* Heatmap Area */}
                   <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]">
-                    <h4 className="text-xs font-bold text-gray-900 mb-3">Issue Heatmap</h4>
+                    <p className="text-xs font-bold text-gray-900 mb-3">Issue Heatmap</p>
                     <div className="h-48 bg-gray-50 rounded-xl relative overflow-hidden border border-gray-100">
                       <div className="absolute inset-0 bg-[url('https://maps.wikimedia.org/osm-intl/13/4232/2779.png')] bg-cover bg-center opacity-60"></div>
                       
@@ -407,25 +414,25 @@ const Landing = () => {
           
           <div className="flex flex-col items-center bg-white p-4 w-56">
             <div className="w-16 h-16 rounded-full bg-red-50 text-red-500 flex items-center justify-center mb-4"><AlertCircle size={24}/></div>
-            <h4 className="font-bold text-gray-900 text-sm mb-2">Reported</h4>
+            <h3 className="font-bold text-gray-900 text-sm mb-2">Reported</h3>
             <p className="text-[10px] text-gray-500">Issue is reported by a citizen with details and location.</p>
           </div>
           
           <div className="flex flex-col items-center bg-white p-4 w-56">
             <div className="w-16 h-16 rounded-full bg-orange-50 text-orange-500 flex items-center justify-center mb-4"><Eye size={24}/></div>
-            <h4 className="font-bold text-gray-900 text-sm mb-2">Acknowledged</h4>
+            <h3 className="font-bold text-gray-900 text-sm mb-2">Acknowledged</h3>
             <p className="text-[10px] text-gray-500">Municipality acknowledges the issue and reviews it.</p>
           </div>
 
           <div className="flex flex-col items-center bg-white p-4 w-56">
             <div className="w-16 h-16 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center mb-4"><Settings size={24}/></div>
-            <h4 className="font-bold text-gray-900 text-sm mb-2">In Progress</h4>
+            <h3 className="font-bold text-gray-900 text-sm mb-2">In Progress</h3>
             <p className="text-[10px] text-gray-500">The issue is assigned and work is in progress.</p>
           </div>
 
           <div className="flex flex-col items-center bg-white p-4 w-56">
             <div className="w-16 h-16 rounded-full bg-brand/10 text-brand flex items-center justify-center mb-4"><CheckCircle2 size={24}/></div>
-            <h4 className="font-bold text-gray-900 text-sm mb-2">Resolved</h4>
+            <h3 className="font-bold text-gray-900 text-sm mb-2">Resolved</h3>
             <p className="text-[10px] text-gray-500">Issue is resolved and community is notified.</p>
           </div>
         </div>
@@ -485,6 +492,7 @@ const Landing = () => {
         </div>
       </footer>
 
+      </main>
     </div>
   );
 };

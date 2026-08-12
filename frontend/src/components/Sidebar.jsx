@@ -11,7 +11,8 @@ import {
   BarChart2, 
   Plus, 
   LogOut,
-  MapPin
+  MapPin,
+  User
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -28,11 +29,12 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 
   const navItems = [
     { name: ["admin", "super_admin", "moderator"].includes(user?.role) ? "Admin Dashboard" : (t("nav_dashboard") || "Dashboard"), path: "/", icon: Home },
+    { name: "Profile", path: "/profile", icon: User, reqAuth: true },
     { name: t("nav_my_reports") || "My Reports", path: "/my-reports", icon: FileText, reqRole: "user", reqAuth: true },
     { name: t("nav_community") || "Explore Issues", path: "/community", icon: Search, reqRole: "user", reqAuth: true },
-    { name: "Notifications", path: "/notifications", icon: Bell, reqRole: "user", reqAuth: true },
-    { name: "Announcements", path: "/announcements", icon: Megaphone, reqRole: "user", reqAuth: true },
-    { name: "Analytics", path: "/analytics", icon: BarChart2, reqRole: "user", reqAuth: true },
+    { name: "Notifications", path: "/notifications", icon: Bell, reqAuth: true },
+    { name: "Announcements", path: "/announcements", icon: Megaphone, reqAuth: true },
+    { name: "Analytics", path: "/analytics", icon: BarChart2, reqAuth: true },
     { name: t("nav_all_reports") || "All Reports", path: "/all-reports", icon: Search, reqAuth: true, adminOnly: true },
     { name: "Update Status", path: "/admin/update-status", icon: Plus, reqAuth: true, adminOnly: true },
     { name: "Manage Categories", path: "/admin/categories", icon: BarChart2, reqAuth: true, superAdminOnly: true },

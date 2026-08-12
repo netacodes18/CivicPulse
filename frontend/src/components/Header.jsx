@@ -24,6 +24,13 @@ const Header = ({ setIsSidebarOpen }) => {
     if (path.includes("profile")) return "Profile";
     if (path.includes("login")) return "Sign In";
     if (path.includes("signup")) return "Register";
+    if (path.includes("audit-logs")) return "Audit Logs";
+    if (path.includes("users")) return "User Management";
+    if (path.includes("categories")) return "Categories";
+    if (path.includes("admin/announcements")) return "Broadcast Announcements";
+    if (path.includes("announcements")) return "Announcements";
+    if (path.includes("analytics")) return "Analytics";
+    if (path.includes("notifications")) return "Notifications";
     return "";
   };
 

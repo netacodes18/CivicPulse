@@ -1,15 +1,8 @@
 const multer = require("multer");
 const path = require("path");
 
-// Storage location and filename config
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "uploads/"); // Make sure this folder exists
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + path.extname(file.originalname));
-  },
-});
+// Use memory storage so we can compress with sharp before writing to disk
+const storage = multer.memoryStorage();
 
 // File filter function to allow only images
 const fileFilter = (req, file, cb) => {

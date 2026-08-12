@@ -7,10 +7,10 @@ module.exports = {
       },
       colors: {
         brand: {
-          dark: "#0F432B",
-          DEFAULT: "#155D3A",
-          light: "#2B8256",
-          accent: "#E6F0EB",
+          dark: "#047857",     // emerald-700
+          DEFAULT: "#059669",  // emerald-600
+          light: "#10b981",    // emerald-500
+          accent: "#d1fae5",   // emerald-100
         },
         status: {
           resolved: "#3B82F6",
@@ -27,6 +27,20 @@ module.exports = {
           border: "#E2E8F0",
         }
       },
+      keyframes: {
+        float: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-10px)' },
+        },
+        'float-slow': {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-15px)' },
+        }
+      },
+      animation: {
+        float: 'float 3s ease-in-out infinite',
+        'float-slow': 'float-slow 6s ease-in-out infinite',
+      }
     },
   },
   plugins: [],
