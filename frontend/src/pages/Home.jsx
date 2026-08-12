@@ -1,275 +1,198 @@
-import React from "react";
-import { ArrowRight, MapPin, Globe, Compass, ArrowUpRight } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState, useContext } from "react";
+import { AuthContext } from "../context/AuthContext";
+import api from "../api/axios";
+import { Link, useNavigate } from "react-router-dom";
+import { 
+  FileText, 
+  Clock, 
+  CheckCircle, 
+  ThumbsUp,
+  MapPin,
+  TrendingUp,
+  ArrowRight,
+  Plus,
+  Megaphone
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
+import MapHeatmap from "../components/MapHeatmap";
 
 const Home = () => {
+  const { user, token } = useContext(AuthContext);
+  const [reports, setReports] = useState([]);
+  const [stats, setStats] = useState({ total: 0, thisWeek: 0, resolved: 0, inProgress: 0, upvotes: 0 });
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { t } = useTranslation();
 
-  return (
-    <div className="min-h-screen bg-[#FDFBF7] text-charcoal font-sans selection:bg-sand selection:text-charcoal overflow-x-hidden">
-
-      {/* 1. Hero Section (Split Layout) */}
-      <section className="relative min-h-[calc(100vh-73px)] flex flex-col md:flex-row border-b border-charcoal/10">
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+      try {
+        const [reportsRes, statsRes, catRes] = await Promise.all([
+          api.get("/api/user/community", { headers: { Authorization: `Bearer ${token}` } }),
+          api.get("/api/user/dashboard-stats", { headers: { Authorization: `Bearer ${token}` } }),
+          api.get("/api/user/dashboard-categories", { headers: { Authorization: `Bearer ${token}` } })
+        ]);
         
-        {/* Subtle Jaali Background Pattern */}
-        <div className="absolute inset-0 pointer-events-none opacity-[0.03] z-0" 
-          style={{ 
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%231A1C19' fill-opacity='1'%3E%3Cpath d='M30 30c0-11-9-20-20-20v10a10 10 0 0 1 10 10h10zm0 0c0 11 9 20 20 20V40a10 10 0 0 1-10-10H30zm0 0c0-11 9-20 20-20v10a10 10 0 0 1-10 10H30zm0 0c0 11-9 20-20 20V40a10 10 0 0 1 10-10h10z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
-          }}
-        ></div>
+        setReports(Array.isArray(reportsRes.data.reports) ? reportsRes.data.reports : []);
+        setStats(statsRes.data);
+        setCategories(catRes.data.categories || []);
+      } catch (err) {
+        console.error("Dashboard fetch error", err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-        {/* Left Content Side */}
-        <div className="flex-1 flex flex-col justify-between px-6 py-12 md:p-16 lg:p-24 bg-[#FDFBF7] relative z-10">
-          {/* Top Label */}
-          <div className="flex items-center space-x-2">
-            <span className="text-[10px] tracking-[0.25em] uppercase font-bold text-forest">
-              {t("home_subtitle")}
-            </span>
-            <div className="w-8 h-px bg-forest/30"></div>
-          </div>
+    fetchDashboardData();
+  }, [token]);
 
-          {/* Main Title & Action */}
-          <div className="my-auto max-w-xl py-12">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-light tracking-tight text-charcoal leading-[1.1] mb-8">
-              {t("home_title")} <br />
-              <span className="font-semibold italic text-forest">{t("home_title_accent")}</span>
-            </h1>
-            <p className="text-charcoal/70 text-sm md:text-base font-light leading-relaxed mb-10 max-w-md">
-              {t("home_description")}
-            </p>
+  const getStatusClasses = (status) => {
+    switch (status) {
+      case "resolved": return "text-status-resolved bg-status-resolved/10";
+      case "in-progress": return "text-status-inprogress bg-status-inprogress/10";
+      default: return "text-status-pending bg-status-pending/10";
+    }
+  };
 
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
-              <button
-                onClick={() => navigate("/login")}
-                className="bg-forest hover:bg-[#D96C4A] text-sand hover:text-white px-8 py-4 text-xs font-bold uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2 group shadow-sm border border-transparent"
-              >
-                <span>{t("home_cta_report")}</span>
-                <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
-              </button>
-              <button
-                onClick={() => {
-                  const element = document.getElementById("process");
-                  element?.scrollIntoView({ behavior: "smooth" });
-                }}
-                className="border border-charcoal/20 hover:border-charcoal hover:bg-charcoal/5 px-8 py-4 text-xs font-bold uppercase tracking-widest transition-all duration-300"
-              >
-                Learn Process
-              </button>
+  if (!user) return null;
+
+  return (
+    <div className="space-y-6 pb-12">
+      {/* Top Stats Row */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {[
+          { label: "Total Reports", value: loading ? "..." : stats.total, icon: FileText, color: "text-brand", bg: "bg-brand/10", sub: `+${stats.thisWeek} this week` },
+          { label: "In Progress", value: loading ? "..." : stats.inProgress, icon: Clock, color: "text-status-pending", bg: "bg-status-pending/10", sub: `${stats.total > 0 ? ((stats.inProgress / stats.total) * 100).toFixed(1) : 0}% of total` },
+          { label: "Resolved", value: loading ? "..." : stats.resolved, icon: CheckCircle, color: "text-status-resolved", bg: "bg-status-resolved/10", sub: `${stats.total > 0 ? ((stats.resolved / stats.total) * 100).toFixed(1) : 0}% resolved` },
+          { label: "Upvotes", value: loading ? "..." : (stats.upvotes > 999 ? (stats.upvotes/1000).toFixed(1) + 'K' : stats.upvotes), icon: ThumbsUp, color: "text-purple-600", bg: "bg-purple-100", sub: "Total community support" },
+        ].map((stat, idx) => (
+          <div key={idx} className="bg-white p-5 rounded-xl border border-surface-border shadow-sm flex items-start gap-4">
+            <div className={`w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 ${stat.bg} ${stat.color}`}>
+              <stat.icon size={24} />
             </div>
-          </div>
-
-          {/* Micro Geometric Accents Info */}
-          <div className="flex items-center space-x-8 pt-6 border-t border-charcoal/10">
             <div>
-              <span className="block text-xl font-bold tracking-tight">120+</span>
-              <span className="text-[9px] uppercase tracking-widest text-charcoal/50 font-bold">active sectors</span>
-            </div>
-            <div className="w-px h-6 bg-charcoal/20"></div>
-            <div>
-              <span className="block text-xl font-bold tracking-tight">2.5k</span>
-              <span className="text-[9px] uppercase tracking-widest text-charcoal/50 font-bold">resolved cases</span>
+              <p className="text-sm font-medium text-gray-500">{stat.label}</p>
+              <h3 className="text-2xl font-bold text-gray-900 mt-1">{stat.value}</h3>
+              <p className="text-[10px] text-gray-400 mt-1">{stat.sub}</p>
             </div>
           </div>
-        </div>
+        ))}
+      </div>
 
-        {/* Right Imagery Side */}
-        <div className="flex-1 relative min-h-[400px] md:min-h-0 bg-charcoal">
-          <img
-            src="https://images.unsplash.com/photo-1582407947304-fd86f028f716?q=80&w=1296&auto=format&fit=crop"
-            alt="Modern Indian concrete architecture"
-            className="absolute inset-0 w-full h-full object-cover opacity-85 filter grayscale hover:grayscale-0 transition-all duration-700 ease-in-out"
-          />
-          {/* Muted green geometric overlay box */}
-          <div className="absolute bottom-12 left-0 bg-forest text-sand p-8 max-w-sm border-l-4 border-sand shadow-2xl hidden lg:block">
-            <span className="text-[9px] uppercase tracking-widest font-bold text-sage block mb-2">active projects</span>
-            <h3 className="text-lg font-light tracking-wide text-white leading-snug">
-              "restoring infrastructure harmony in public corridors."
-            </h3>
-          </div>
-        </div>
-      </section>
-
-      {/* 2. Intro Statement Section */}
-      <section className="px-6 py-24 md:py-32 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-        <div className="lg:col-span-7">
-          <span className="text-[10px] tracking-[0.2em] uppercase font-bold text-sage block mb-4">our ethos</span>
-          <h2 className="text-3xl sm:text-4xl font-light text-charcoal tracking-tight leading-snug max-w-2xl">
-            We believe that our neighborhoods are living architectures. When a public asset decays, it alters the <span className="font-semibold italic text-forest">communal space.</span>
-          </h2>
-        </div>
-        <div className="lg:col-span-5 bg-sand/30 p-8 border border-charcoal/5 relative">
-          {/* Geometric Accent Line */}
-          <div className="absolute top-0 left-12 w-12 h-1 bg-forest"></div>
-          <p className="text-charcoal/80 text-sm font-light leading-relaxed mb-6">
-            CivicPulse treats local grievances as architectural restorations. By crowdsourcing municipal logs, we enable municipal caretakers and citizens to collaboratively rebuild structural integrity and ensure active service standards.
-          </p>
-          <div className="flex items-center space-x-2 text-xs font-bold uppercase tracking-widest text-forest">
-            <span>stewardship metrics</span>
-            <ArrowUpRight size={14} />
-          </div>
-        </div>
-      </section>
-
-      {/* 3. Sectors of Concern (Services Redesign) */}
-      <section className="px-6 py-24 bg-forest text-sand border-y border-charcoal/10">
-        <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-16">
-            <div>
-              <span className="text-[10px] tracking-[0.2em] uppercase font-bold text-sage block mb-2">operational sectors</span>
-              <h2 className="text-3xl sm:text-4xl font-light tracking-tight text-white">
-                Grievance Restoration Categories
-              </h2>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <div className="lg:col-span-2 space-y-6">
+          {/* Heatmap Container */}
+          <div className="bg-white rounded-xl border border-surface-border shadow-sm p-5">
+            <h3 className="text-base font-semibold text-gray-900 mb-4">Issue Heatmap</h3>
+            <div className="w-full h-[300px] bg-gray-100 rounded-lg relative overflow-hidden flex items-center justify-center">
+              <MapHeatmap reports={reports} />
             </div>
-            <p className="text-sage max-w-xs text-sm font-light leading-relaxed">
-              We catalog public space anomalies into structured architectural sectors for swift administrative mapping.
-            </p>
           </div>
 
-          {/* Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              {
-                num: "01",
-                title: "Road Integrity",
-                desc: "Pothole repair, pedestrian path cracks, public paving structural adjustments.",
-              },
-              {
-                num: "02",
-                title: "Spatial Lighting",
-                desc: "Dark corner illumination, broken streetlight replacement, energy standards.",
-              },
-              {
-                num: "03",
-                title: "Sanitation Standards",
-                desc: "Public waste dump clearance, street cleanliness, container monitoring.",
-              },
-              {
-                num: "04",
-                title: "Hydraulic Integrity",
-                desc: "Water main leaks, community drain clears, pipe flow restorations.",
-              },
-            ].map((sector, idx) => (
-              <div
-                key={idx}
-                className="border border-sand/10 hover:border-sand/40 p-8 flex flex-col justify-between h-[250px] transition-all duration-300 hover:bg-white/5"
-              >
-                <div className="flex justify-between items-start">
-                  <span className="text-xs font-mono text-sage">{sector.num}</span>
-                  <div className="w-1.5 h-1.5 bg-sand rounded-full"></div>
-                </div>
-                <div>
-                  <h3 className="text-lg font-medium text-white mb-2 uppercase tracking-wider">{sector.title}</h3>
-                  <p className="text-sage text-xs font-light leading-relaxed">{sector.desc}</p>
-                </div>
+          {/* Recent Reports */}
+          <div className="bg-white rounded-xl border border-surface-border shadow-sm p-0 overflow-hidden">
+            <div className="flex items-center justify-between p-5 border-b border-surface-border">
+              <h3 className="text-base font-semibold text-gray-900">Recent Reports</h3>
+              <Link to="/community" className="text-sm text-brand font-medium hover:underline">View All</Link>
+            </div>
+            
+            {loading ? (
+              <div className="p-8 text-center text-gray-400 animate-pulse">Loading reports...</div>
+            ) : reports.length === 0 ? (
+              <div className="p-8 text-center text-gray-400 text-sm">No recent reports found in your area.</div>
+            ) : (
+              <div className="divide-y divide-surface-border">
+                {reports.slice(0, 4).map((report) => (
+                  <div key={report._id} className="p-5 flex items-center gap-4 hover:bg-surface-muted transition-colors cursor-pointer" onClick={() => navigate(`/report/${report._id}`)}>
+                    {report.imageUrl ? (
+                      <img src={report.imageUrl} alt={report.title} className="w-20 h-20 rounded-lg object-cover flex-shrink-0" />
+                    ) : (
+                      <div className="w-20 h-20 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
+                        <FileText className="text-gray-400" size={24} />
+                      </div>
+                    )}
+                    
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="text-sm font-bold text-gray-900 truncate">{report.title}</h4>
+                        <span className={`w-1.5 h-1.5 rounded-full ${report.priority === 'High' ? 'bg-status-high' : 'bg-status-resolved'}`}></span>
+                      </div>
+                      <p className="text-xs text-gray-500 truncate mb-1">
+                        {report.area || "General Area"} • Reported {new Date(report.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
+
+                    <div className="flex flex-col items-end gap-2">
+                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide ${getStatusClasses(report.status)}`}>
+                        {report.status}
+                      </span>
+                      <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                        <ThumbsUp size={12} />
+                        <span>{report.upvotes?.length || 0}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
+            )}
           </div>
         </div>
-      </section>
 
-      {/* 4. Stats Section */}
-      <section className="bg-charcoal text-sand py-24 px-6 border-b border-charcoal/20">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12 lg:gap-24">
-          {[
-            { label: "Complaints Registered", val: "542+", sub: "Logged cases state-wide" },
-            { label: "Municipal Coverage", val: "18 Districts", sub: "Active administrative zones" },
-            { label: "Average Closeout", val: "4.8 Days", sub: "Response resolution time" },
-          ].map((stat, idx) => (
-            <div key={idx} className="border-l border-sand/20 pl-8 flex flex-col justify-between py-2">
-              <span className="text-xs uppercase tracking-widest text-sage block mb-4">{stat.label}</span>
-              <div>
-                <span className="text-4xl sm:text-5xl font-light tracking-tight text-white block mb-2">{stat.val}</span>
-                <span className="text-xs text-sage font-light block">{stat.sub}</span>
-              </div>
+        {/* Right Sidebar Area */}
+        <div className="space-y-6">
+          
+          <div className="bg-white rounded-xl border border-surface-border shadow-sm p-6 text-center flex flex-col items-center">
+            <h3 className="text-lg font-bold text-gray-900 mb-2">Report an Issue</h3>
+            <p className="text-sm text-gray-500 mb-6">Help your community by reporting issues around you.</p>
+            <Link to="/report" className="w-full flex items-center justify-center gap-2 bg-brand text-white py-3 rounded-lg font-medium hover:bg-brand-dark transition-colors">
+              <Plus size={18} />
+              <span>Report Now</span>
+            </Link>
+          </div>
+
+          <div className="bg-white rounded-xl border border-surface-border shadow-sm p-0">
+            <div className="flex items-center justify-between p-5 border-b border-surface-border">
+              <h3 className="text-base font-semibold text-gray-900">Categories</h3>
+              <Link to="/community" className="text-sm text-brand font-medium hover:underline">View All</Link>
             </div>
-          ))}
-        </div>
-      </section>
-
-      {/* 5. The Process (How it works) */}
-      <section id="process" className="px-6 py-24 md:py-32 max-w-7xl mx-auto">
-        <div className="text-center mb-20">
-          <span className="text-[10px] tracking-[0.2em] uppercase font-bold text-forest block mb-2">workflow</span>
-          <h2 className="text-3xl sm:text-4xl font-light tracking-tight text-charcoal">
-            stewardship progression
-          </h2>
-          <div className="w-8 h-1 bg-forest mx-auto mt-4"></div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-          {[
-            {
-              step: "01",
-              title: "Log public anomaly",
-              desc: "Snap a photo of the public structural issue, specify state/area, and register detail logs."
-            },
-            {
-              step: "02",
-              title: "Administrative assignment",
-              desc: "Local municipal admins verify the reported category and route standard requests to field workers."
-            },
-            {
-              step: "03",
-              title: "Structural closeout",
-              desc: "Monitor live resolution progress and receive photo updates once the asset integrity is verified."
-            }
-          ].map((proc, idx) => (
-            <div key={idx} className="bg-white border border-charcoal/5 p-8 relative flex flex-col justify-between min-h-[260px] shadow-sm hover:shadow-md transition-shadow">
-              {/* Corner accent block */}
-              <div className="absolute top-0 right-0 w-3 h-3 bg-sand"></div>
-
-              <span className="text-3xl font-light text-forest italic block mb-6">{proc.step}</span>
-              <div>
-                <h3 className="text-base font-semibold uppercase tracking-widest text-charcoal mb-3">{proc.title}</h3>
-                <p className="text-charcoal/70 text-xs font-light leading-relaxed">{proc.desc}</p>
-              </div>
+            <div className="p-5 space-y-4">
+              {loading ? (
+                <div className="text-sm text-gray-400 animate-pulse">Loading categories...</div>
+              ) : categories.length === 0 ? (
+                <div className="text-sm text-gray-400">No categories found.</div>
+              ) : (
+                categories.map((cat, idx) => (
+                  <div key={idx} className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 rounded-full bg-brand"></div>
+                      <span className="text-sm text-gray-700 capitalize">{cat._id}</span>
+                    </div>
+                    <span className="text-xs font-medium text-gray-500">{cat.count}</span>
+                  </div>
+                ))
+              )}
             </div>
-          ))}
-        </div>
-      </section>
+          </div>
 
-      {/* 6. Footer Call To Action */}
-      <section
-        className="px-6 py-24 text-center relative overflow-hidden bg-charcoal border-t border-charcoal/20"
-        style={{
-          backgroundImage: `
-            linear-gradient(rgba(17,26,23,0.95), rgba(17,26,23,0.85)),
-            url('https://images.unsplash.com/photo-1524492412937-b28074a5d7da?q=80&w=1920&auto=format&fit=crop')
-          `,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
-      >
-        <div className="max-w-3xl mx-auto relative z-10 py-8">
-          <span className="text-[10px] tracking-[0.25em] uppercase font-bold text-sage block mb-4">take stewardship</span>
-          <h2 className="text-3xl sm:text-4xl font-light text-white mb-6 leading-tight tracking-tight">
-            Ready to participate in urban restoration?
-          </h2>
-          <p className="text-sand/70 text-sm font-light mb-10 max-w-lg mx-auto leading-relaxed">
-            Create an account to join thousands of residents working side-by-side with local municipal bodies across the country.
-          </p>
-          <button
-            onClick={() => navigate("/login")}
-            className="bg-sand hover:bg-white text-charcoal px-10 py-4 text-xs font-bold uppercase tracking-widest transition-all duration-300 inline-flex items-center gap-2 group shadow-lg"
-          >
-            <span>Enter Citizen Portal</span>
-            <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
-          </button>
-        </div>
-      </section>
+          <div className="bg-brand-accent/50 rounded-xl border border-brand/10 p-5">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                <Megaphone size={16} className="text-blue-600" />
+              </div>
+              <h4 className="text-sm font-bold text-gray-900">Clean City Drive</h4>
+            </div>
+            <p className="text-xs text-gray-600 mb-2">Join the cleanliness drive this Sunday! Meet at Central Park.</p>
+            <span className="text-[10px] text-gray-400">2d ago</span>
+          </div>
 
-      {/* 7. Footer Credits */}
-      <footer className="bg-charcoal text-sage/40 text-xs text-center py-8 border-t border-white/5">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row justify-between items-center gap-4">
-          <span className="tracking-widest uppercase text-[10px] font-bold text-sand/30">civicpulse.</span>
-          <span className="font-light">
-            Designed for urban restoration by <span className="text-sand/50 font-medium">Utkarsh, IIIT Ranchi</span>
-          </span>
         </div>
-      </footer>
+      </div>
     </div>
   );
 };

@@ -8,14 +8,15 @@ import {
   MessageCircle,
   Calendar,
   MapPin,
-  Tag,
   Layers,
   Clock,
-  Wrench,
   CheckCircle,
   Send,
   User,
   Navigation,
+  Loader2,
+  FileText,
+  Share2
 } from "lucide-react";
 
 const ReportDetail = () => {
@@ -29,14 +30,20 @@ const ReportDetail = () => {
   const [commentText, setCommentText] = useState("");
   const [submittingComment, setSubmittingComment] = useState(false);
   const [upvoting, setUpvoting] = useState(false);
+  
+  // Assignment state
+  const [assignedDepartment, setAssignedDepartment] = useState("");
+  const [assigning, setAssigning] = useState(false);
 
   const fetchReport = async () => {
     try {
       const res = await api.get(`/api/user/report/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setReport(res.data.report);
+      const reportData = res.data.report;
+      setReport(reportData);
       setComments(res.data.comments || []);
+      setAssignedDepartment(reportData.assignedDepartment || "");
     } catch (err) {
       console.error("Error fetching report", err);
     } finally {
@@ -52,12 +59,7 @@ const ReportDetail = () => {
     if (upvoting) return;
     setUpvoting(true);
     try {
-      const res = await api.post(
-        `/api/user/report/${id}/upvote`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      // Refresh report data to get updated upvote count
+      await api.post(`/api/user/report/${id}/upvote`, {}, { headers: { Authorization: `Bearer ${token}` } });
       await fetchReport();
     } catch (err) {
       console.error("Upvote error", err);
@@ -71,11 +73,7 @@ const ReportDetail = () => {
     if (!commentText.trim() || submittingComment) return;
     setSubmittingComment(true);
     try {
-      await api.post(
-        `/api/user/report/${id}/comment`,
-        { text: commentText.trim() },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.post(`/api/user/report/${id}/comment`, { text: commentText.trim() }, { headers: { Authorization: `Bearer ${token}` } });
       setCommentText("");
       await fetchReport();
     } catch (err) {
@@ -85,289 +83,243 @@ const ReportDetail = () => {
     }
   };
 
-  const getStatusDetails = (status) => {
-    switch (status) {
-      case "resolved":
-        return {
-          icon: <CheckCircle className="w-4 h-4 text-forest" />,
-          classes: "bg-forest/10 text-forest border-forest/20",
-        };
-      case "in-progress":
-        return {
-          icon: <Wrench className="w-4 h-4 text-[#6E7B5E]" />,
-          classes: "bg-sage/20 text-[#404D2E] border-[#AEC4B6]",
-        };
-      default:
-        return {
-          icon: <Clock className="w-4 h-4 text-charcoal/60" />,
-          classes: "bg-sand/30 text-charcoal/80 border-charcoal/10",
-        };
+  const handleAssign = async () => {
+    setAssigning(true);
+    try {
+      await api.patch(`/api/admin/reports/${id}/assign`, { assignedDepartment }, { headers: { Authorization: `Bearer ${token}` } });
+      await fetchReport();
+      alert("Assignment updated successfully");
+    } catch (err) {
+      console.error("Assign error", err);
+      alert("Failed to update assignment");
+    } finally {
+      setAssigning(false);
     }
   };
 
-  const hasUpvoted = report?.upvotes?.some(
-    (u) => (typeof u === "object" ? u._id : u) === user?.id
-  );
+  const getStatusClasses = (status) => {
+    switch (status) {
+      case "resolved": return "text-status-resolved bg-status-resolved/10 border-status-resolved/20";
+      case "in-progress": return "text-status-inprogress bg-status-inprogress/10 border-status-inprogress/20";
+      default: return "text-status-pending bg-status-pending/10 border-status-pending/20";
+    }
+  };
+
+  const hasUpvoted = report?.upvotes?.some((u) => (typeof u === "object" ? u._id : u) === user?.id);
 
   if (loading) {
     return (
-      <div className="min-h-[calc(100vh-73px)] bg-[#FDFBF7] flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-forest mb-4 mx-auto"></div>
-          <p className="text-xs uppercase tracking-widest text-charcoal/50 font-bold">
-            Loading report data...
-          </p>
-        </div>
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-gray-400">
+        <Loader2 size={32} className="animate-spin mb-4 text-brand" />
+        <p>Loading report details...</p>
       </div>
     );
   }
 
   if (!report) {
     return (
-      <div className="min-h-[calc(100vh-73px)] bg-[#FDFBF7] flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-lg font-semibold text-charcoal mb-2">
-            Report Not Found
-          </h2>
-          <button
-            onClick={() => navigate(-1)}
-            className="text-forest text-xs uppercase tracking-widest font-bold hover:underline"
-          >
-            Go Back
-          </button>
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+          <FileText size={32} className="text-gray-400" />
         </div>
+        <h2 className="text-xl font-bold text-gray-900 mb-2">Report Not Found</h2>
+        <p className="text-gray-500 mb-6">The report you are looking for does not exist or has been removed.</p>
+        <button onClick={() => navigate(-1)} className="bg-brand text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-brand-dark transition-colors">
+          Go Back
+        </button>
       </div>
     );
   }
 
-  const statusMeta = getStatusDetails(report.status);
-
   return (
-    <div className="min-h-[calc(100vh-73px)] bg-[#FDFBF7] py-12 px-6">
-      <div className="max-w-3xl mx-auto">
-        {/* Back Navigation */}
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-charcoal/60 hover:text-forest text-xs uppercase tracking-widest font-bold mb-8 transition-colors group"
-        >
-          <ArrowLeft
-            size={14}
-            className="group-hover:-translate-x-0.5 transition-transform"
-          />
-          <span>Back</span>
-        </button>
+    <div className="pb-12 max-w-4xl mx-auto space-y-6">
+      {/* Back Navigation */}
+      <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-gray-500 hover:text-brand text-sm font-medium transition-colors mb-2">
+        <ArrowLeft size={16} />
+        <span>Back to reports</span>
+      </button>
 
-        {/* Report Card */}
-        <div className="bg-white border border-charcoal/10 shadow-sm relative mb-8">
-          <div className="absolute top-0 left-0 w-full h-1 bg-forest"></div>
-
-          <div className="p-8 space-y-6">
-            {/* Meta Row */}
-            <div className="flex flex-wrap items-center gap-3 text-[10px] text-charcoal/50">
-              <span className="font-mono bg-charcoal/5 px-2 py-0.5 border border-charcoal/5">
-                ID: {report._id}
-              </span>
-              <div className="w-1 h-1 bg-charcoal/20 rounded-full"></div>
-              <div className="flex items-center gap-1">
-                <Calendar size={12} />
-                <span>
-                  {new Date(report.createdAt).toLocaleDateString("en-IN", {
-                    day: "numeric",
-                    month: "short",
-                    year: "numeric",
-                  })}
-                </span>
-              </div>
-              <div className="w-1 h-1 bg-charcoal/20 rounded-full"></div>
-              <div className="flex items-center gap-1">
-                <User size={12} />
-                <span className="font-bold">
-                  {report.user?.username || "Anonymous"}
-                </span>
-              </div>
-            </div>
-
-            {/* Title */}
-            <h1 className="text-2xl font-bold text-charcoal uppercase tracking-wide">
-              {report.title}
-            </h1>
-
-            {/* Description */}
-            <p className="text-charcoal/70 text-sm font-light leading-relaxed">
-              {report.description}
-            </p>
-
-            {/* Attached Image */}
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        {/* Left Column: Report Details */}
+        <div className="lg:col-span-2 space-y-6">
+          <div className="bg-white rounded-xl border border-surface-border shadow-sm overflow-hidden">
             {report.imageUrl && (
-              <div className="border border-charcoal/10 overflow-hidden">
-                <img
-                  src={report.imageUrl}
-                  alt={`Evidence for: ${report.title}`}
-                  className="w-full max-h-96 object-cover"
-                />
+              <div className="w-full h-64 sm:h-80 relative bg-gray-100 border-b border-surface-border">
+                <img src={report.imageUrl} alt={report.title} className="w-full h-full object-cover" />
               </div>
             )}
-
-            {/* Badge Row */}
-            <div className="flex flex-wrap items-center gap-4 text-[10px] text-charcoal/60 pt-2">
-              <div
-                className={`inline-flex items-center gap-1.5 px-3 py-1 font-bold uppercase tracking-wider border ${statusMeta.classes}`}
-              >
-                {statusMeta.icon}
-                <span>{report.status}</span>
-              </div>
-              <div className="flex items-center gap-1 bg-charcoal/5 px-2 py-1 border border-charcoal/5">
-                <Tag size={10} className="text-forest" />
-                <span className="font-bold uppercase tracking-wider">
-                  {report.category || "uncategorized"}
+            
+            <div className="p-6 md:p-8">
+              <div className="flex items-center justify-between gap-4 mb-4">
+                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border ${getStatusClasses(report.status)}`}>
+                  {report.status}
                 </span>
+                <div className="flex items-center gap-2 text-xs text-gray-500">
+                  <Calendar size={14} />
+                  <span>{new Date(report.createdAt).toLocaleDateString()}</span>
+                </div>
               </div>
-              {report.state && (
-                <div className="flex items-center gap-1">
-                  <MapPin size={10} className="text-forest" />
-                  <span className="capitalize">{report.state}</span>
+
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">{report.title}</h1>
+              
+              <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-6 pb-6 border-b border-surface-border">
+                <div className="flex items-center gap-1.5 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-200">
+                  <User size={16} className="text-brand" />
+                  <span className="font-medium">{report.user?.username || "Anonymous"}</span>
                 </div>
-              )}
-              {report.area && (
-                <div className="flex items-center gap-1">
-                  <Layers size={10} className="text-forest" />
-                  <span className="capitalize">{report.area}</span>
+                <div className="flex items-center gap-1.5 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-200">
+                  <Layers size={16} className="text-brand" />
+                  <span className="capitalize font-medium">{report.category || "General"}</span>
                 </div>
-              )}
+                {report.area && (
+                  <div className="flex items-center gap-1.5">
+                    <MapPin size={16} className="text-gray-400" />
+                    <span className="capitalize">{report.area}</span>
+                  </div>
+                )}
+                {report.state && (
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-gray-300"></span>
+                    <span className="capitalize">{report.state}</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="prose prose-sm sm:prose-base text-gray-700 max-w-none">
+                <p className="whitespace-pre-line leading-relaxed">{report.description}</p>
+              </div>
+
               {report.coordinates?.lat && report.coordinates?.lng && (
-                <div className="flex items-center gap-1 text-forest">
-                  <Navigation size={10} />
-                  <span>
-                    {report.coordinates.lat.toFixed(6)}, {report.coordinates.lng.toFixed(6)}
-                  </span>
+                <div className="mt-8 p-4 bg-brand/5 rounded-lg border border-brand/10 flex items-start gap-3">
+                  <Navigation size={20} className="text-brand mt-0.5" />
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-900 mb-1">Precise Location Logged</h4>
+                    <p className="text-xs text-gray-600">Coordinates: {report.coordinates.lat.toFixed(6)}, {report.coordinates.lng.toFixed(6)}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Assignment Panel (Admins/Moderators Only) */}
+              {["admin", "super_admin", "moderator"].includes(user?.role) && (
+                <div className="mt-8 p-6 bg-blue-50/50 rounded-xl border border-blue-100 space-y-4">
+                  <h4 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                    <User size={18} className="text-blue-600" />
+                    Internal Assignment (Admin)
+                  </h4>
+                  <div className="flex flex-col sm:flex-row gap-4 items-end">
+                    <div className="flex-1 w-full">
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Routed Department</label>
+                      <select 
+                        value={assignedDepartment} 
+                        onChange={(e) => setAssignedDepartment(e.target.value)}
+                        className="w-full text-sm border-gray-300 rounded-lg px-3 py-2 border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white"
+                      >
+                        <option value="">Unassigned</option>
+                        <option value="roads">Roads & Footpaths</option>
+                        <option value="water">Water Supply & Leakage</option>
+                        <option value="sanitation">Garbage & Sanitation</option>
+                        <option value="electricity">Street Lights & Electricity</option>
+                        <option value="other">Other Issues</option>
+                      </select>
+                    </div>
+                    <button 
+                      onClick={handleAssign}
+                      disabled={assigning}
+                      className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors disabled:opacity-70 flex items-center justify-center gap-2"
+                    >
+                      {assigning ? <Loader2 size={16} className="animate-spin" /> : "Save Routing"}
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
 
-            {/* Upvote Bar */}
-            <div className="flex items-center gap-6 pt-4 border-t border-charcoal/10">
+            {/* Action Bar */}
+            <div className="px-6 py-4 bg-gray-50/80 border-t border-surface-border flex items-center justify-between">
               <button
                 onClick={handleUpvote}
                 disabled={upvoting}
-                className={`flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-widest transition-all border ${
-                  hasUpvoted
-                    ? "bg-forest text-sand border-forest"
-                    : "bg-white text-charcoal border-charcoal/20 hover:border-forest hover:text-forest"
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors border shadow-sm ${
+                  hasUpvoted ? "bg-brand/10 text-brand border-brand/20" : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
                 }`}
               >
-                <ThumbsUp size={14} />
+                <ThumbsUp size={16} className={hasUpvoted ? "fill-brand" : ""} />
                 <span>{hasUpvoted ? "Supported" : "Support"}</span>
-                <span className="ml-1 text-[10px] opacity-70">
-                  {report.upvotes?.length || 0}
-                </span>
+                <span className={`ml-1 px-2 py-0.5 rounded-md text-xs ${hasUpvoted ? "bg-brand/10" : "bg-gray-100"}`}>{report.upvotes?.length || 0}</span>
               </button>
-
-              <div className="flex items-center gap-1.5 text-charcoal/50 text-xs">
-                <MessageCircle size={14} />
-                <span className="font-bold">{comments.length}</span>
-                <span className="font-light">
-                  {comments.length === 1 ? "comment" : "comments"}
-                </span>
-              </div>
+              
+              <button className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors">
+                <Share2 size={16} />
+                <span>Share</span>
+              </button>
             </div>
           </div>
         </div>
 
-        {/* Comment Section */}
-        <div className="bg-white border border-charcoal/10 shadow-sm relative">
-          <div className="absolute top-0 left-0 w-full h-1 bg-charcoal/10"></div>
+        {/* Right Column: Discussion */}
+        <div className="lg:col-span-1 space-y-6">
+          <div className="bg-white rounded-xl border border-surface-border shadow-sm flex flex-col h-full max-h-[800px]">
+            <div className="p-5 border-b border-surface-border flex items-center gap-2">
+              <MessageCircle size={18} className="text-brand" />
+              <h3 className="text-base font-semibold text-gray-900">Discussion ({comments.length})</h3>
+            </div>
 
-          <div className="p-8">
-            <h2 className="text-sm font-semibold uppercase tracking-widest text-charcoal mb-6 flex items-center gap-2">
-              <MessageCircle size={16} className="text-forest" />
-              Discussion
-            </h2>
-
-            {/* Comment Input */}
-            <form onSubmit={handleComment} className="mb-8">
-              <div className="flex gap-3">
-                <div className="flex-shrink-0 w-8 h-8 bg-forest/10 border border-forest/20 flex items-center justify-center">
-                  <span className="text-[10px] font-bold text-forest uppercase">
-                    {user?.username?.charAt(0) || "?"}
-                  </span>
-                </div>
-                <div className="flex-1">
-                  <textarea
-                    value={commentText}
-                    onChange={(e) => setCommentText(e.target.value)}
-                    placeholder="Share your thoughts or additional information about this issue..."
-                    rows={3}
-                    maxLength={1000}
-                    className="w-full border border-charcoal/15 focus:border-forest bg-transparent py-3 px-4 text-charcoal text-sm outline-none transition-colors placeholder-charcoal/30 resize-none"
-                  />
-                  <div className="flex items-center justify-between mt-2">
-                    <span className="text-[10px] text-charcoal/40">
-                      {commentText.length}/1000
-                    </span>
-                    <button
-                      type="submit"
-                      disabled={!commentText.trim() || submittingComment}
-                      className="bg-forest hover:bg-charcoal disabled:opacity-40 disabled:cursor-not-allowed text-sand hover:text-white px-5 py-2 text-[10px] font-bold uppercase tracking-widest transition-all flex items-center gap-2"
-                    >
-                      <Send size={12} />
-                      <span>{submittingComment ? "Posting..." : "Post"}</span>
-                    </button>
+            {/* Comments List */}
+            <div className="flex-1 overflow-y-auto p-5 space-y-5">
+              {comments.length === 0 ? (
+                <div className="text-center py-10">
+                  <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <MessageCircle size={20} className="text-gray-400" />
                   </div>
+                  <p className="text-sm font-medium text-gray-900 mb-1">No comments yet</p>
+                  <p className="text-xs text-gray-500">Be the first to share your thoughts.</p>
                 </div>
-              </div>
-            </form>
-
-            {/* Comments Timeline */}
-            {comments.length === 0 ? (
-              <div className="text-center py-8">
-                <MessageCircle
-                  size={24}
-                  className="text-charcoal/20 mx-auto mb-3"
-                />
-                <p className="text-xs text-charcoal/50 uppercase tracking-wider font-bold">
-                  No comments yet
-                </p>
-                <p className="text-[10px] text-charcoal/40 mt-1">
-                  Be the first to share your thoughts on this issue.
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-0 divide-y divide-charcoal/8">
-                {comments.map((c) => (
-                  <div key={c._id} className="py-5 first:pt-0">
-                    <div className="flex gap-3">
-                      <div className="flex-shrink-0 w-8 h-8 bg-charcoal/5 border border-charcoal/10 flex items-center justify-center">
-                        <span className="text-[10px] font-bold text-charcoal/60 uppercase">
-                          {c.user?.username?.charAt(0) || "?"}
+              ) : (
+                comments.map((c) => (
+                  <div key={c._id} className="flex gap-3">
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-brand/10 text-brand flex items-center justify-center text-xs font-bold uppercase">
+                      {c.user?.username?.charAt(0) || "?"}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-sm font-semibold text-gray-900">{c.user?.username || "Unknown"}</span>
+                        <span className="text-xs text-gray-400">
+                          {new Date(c.createdAt).toLocaleDateString()}
                         </span>
                       </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1.5">
-                          <span className="text-xs font-bold text-charcoal">
-                            {c.user?.username || "Unknown"}
-                          </span>
-                          <span className="text-[10px] text-charcoal/40">
-                            {new Date(c.createdAt).toLocaleDateString("en-IN", {
-                              day: "numeric",
-                              month: "short",
-                              year: "numeric",
-                            })}{" "}
-                            at{" "}
-                            {new Date(c.createdAt).toLocaleTimeString("en-IN", {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                          </span>
-                        </div>
-                        <p className="text-sm text-charcoal/70 leading-relaxed font-light">
-                          {c.text}
-                        </p>
-                      </div>
+                      <p className="text-sm text-gray-600 leading-relaxed bg-gray-50 p-3 rounded-lg rounded-tl-none border border-gray-100">
+                        {c.text}
+                      </p>
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
+                ))
+              )}
+            </div>
+
+            {/* Comment Input */}
+            <div className="p-5 border-t border-surface-border bg-gray-50/50">
+              <form onSubmit={handleComment}>
+                <textarea
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  placeholder="Add a comment..."
+                  rows={3}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none transition-colors bg-white resize-none mb-3"
+                />
+                <div className="flex justify-end">
+                  <button
+                    type="submit"
+                    disabled={!commentText.trim() || submittingComment}
+                    className="bg-brand hover:bg-brand-dark disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-5 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2 shadow-sm"
+                  >
+                    {submittingComment ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+                    <span>Post Comment</span>
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       </div>

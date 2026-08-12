@@ -14,11 +14,14 @@ const reportSchema = new mongoose.Schema(
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
     state: { type: String, required: true, index: true },
     area: { type: String, index: true },
+    pincode: { type: String, required: true, index: true },
     upvotes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     coordinates: {
       lat: { type: Number, default: null },
       lng: { type: Number, default: null },
     },
+    assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+    assignedDepartment: { type: String, default: null },
     idempotencyKey: { type: String, unique: true, sparse: true },
   },
   { timestamps: true }

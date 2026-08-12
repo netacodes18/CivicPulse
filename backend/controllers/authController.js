@@ -12,6 +12,8 @@ const generateToken = (user) => {
       username: user.username,
       state: user.state,
       area: user.area,
+      pincode: user.pincode,
+      department: user.department,
     },
     process.env.JWT_SECRET,
     { expiresIn: "1d" }
@@ -20,12 +22,18 @@ const generateToken = (user) => {
 
 // POST /api/auth/signup
 const signup = async (req, res) => {
-  const { username, email, password, role, state, area } = req.body;
+  const { username, email, password, role, state, area, pincode, department } = req.body;
 
-  if (!username || !email || !password || !role || !state) {
+  if (!username || !email || !password || !role || !state || !pincode) {
     return res
       .status(400)
       .json({ message: "All fields except area are required" });
+  }
+
+  if (role === "moderator" && !department) {
+    return res
+      .status(400)
+      .json({ message: "Department is required for moderators" });
   }
 
   try {
@@ -48,6 +56,8 @@ const signup = async (req, res) => {
       role: role.toLowerCase(), // ✅ IMPORTANT
       state,
       area,
+      pincode,
+      department: role === "moderator" ? department : null,
     });
 
     const token = generateToken(newUser);
@@ -60,6 +70,8 @@ const signup = async (req, res) => {
         role: newUser.role,
         state: newUser.state,
         area: newUser.area,
+        pincode: newUser.pincode,
+        department: newUser.department,
       },
       token,
     });
@@ -120,6 +132,8 @@ const login = async (req, res) => {
         role: user.role,
         state: user.state,
         area: user.area,
+        pincode: user.pincode,
+        department: user.department,
       },
       token,
     });

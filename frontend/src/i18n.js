@@ -8,7 +8,7 @@ const resources = {
       // Navbar
       "nav_report_issue": "Report Issue",
       "nav_community": "Community",
-      "nav_dashboard": "Admin Dashboard",
+      "nav_dashboard": "Dashboard",
       "nav_my_reports": "My Reports",
       "nav_login": "Login",
       "nav_signup": "Sign Up",

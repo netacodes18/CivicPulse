@@ -1,182 +1,248 @@
 import React, { useState, useContext, useEffect } from "react";
 import api from "../api/axios";
 import { AuthContext } from "../context/AuthContext";
-import { useLocation, useNavigate } from "react-router-dom";
-import { ArrowRight, CheckCircle, Clock, Wrench, AlertCircle, Bookmark } from "lucide-react";
+import { Clock, Wrench, CheckCircle, Loader2, RefreshCw } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
 
 const UpdateReportStatus = () => {
   const { token } = useContext(AuthContext);
-  const location = useLocation();
-  const navigate = useNavigate();
-  const [reportId, setReportId] = useState("");
-  const [version, setVersion] = useState(undefined);
-  const [status, setStatus] = useState("pending");
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
+  const [reports, setReports] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [updatingId, setUpdatingId] = useState(null);
 
-  useEffect(() => {
-    if (location.state?.reportId) {
-      setReportId(location.state.reportId);
-    }
-    if (location.state?.version !== undefined) {
-      setVersion(location.state.version);
-    }
-  }, [location.state]);
-
-  const handleUpdate = async (e) => {
-    e.preventDefault();
-    setMessage("");
-    setError("");
-
+  const fetchReports = async () => {
     try {
-      const payload = { status };
-      if (version !== undefined) {
-        payload.version = version;
-      }
-      
-      const res = await api.put(
-        `/api/admin/report/${reportId}/status`,
-        payload,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      setMessage(res.data.message);
+      const res = await api.get("/api/admin/reports", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setReports(Array.isArray(res.data.reports) ? res.data.reports : []);
     } catch (err) {
-      setError(err.response?.data?.message || "Error updating status");
+      console.error("Admin report fetch error", err);
+    } finally {
+      setLoading(false);
     }
   };
 
-  return (
-    <div className="min-h-[calc(100vh-73px)] bg-[#FDFBF7] py-12 px-6">
-      <div className="max-w-2xl mx-auto">
-        
-        {/* Header Block */}
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-12 h-12 bg-forest/5 border border-forest/15 text-forest mb-4">
-            <span className="text-xs font-bold tracking-widest uppercase">upd.</span>
-          </div>
-          <h1 className="text-3xl font-light text-charcoal tracking-tight mb-2">
-            restore <span className="font-semibold italic text-forest">spatial integrity</span>
-          </h1>
-          <p className="text-charcoal/60 text-xs tracking-wide">
-            admin status dispatcher for municipal restoration progressions
-          </p>
+  useEffect(() => {
+    fetchReports();
+  }, [token]);
+
+  const handleStatusChange = async (reportId, newStatus, version) => {
+    setUpdatingId(reportId);
+    try {
+      await api.patch(`/api/admin/reports/${reportId}/status`, { status: newStatus, version }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      // Optimistically update the UI
+      setReports(reports.map(r => 
+        r._id === reportId ? { ...r, status: newStatus, __v: r.__v + 1 } : r
+      ));
+    } catch (err) {
+      alert("Failed to update status. Someone else might have modified it.");
+      fetchReports(); // Refresh on error
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  // Group reports
+  const pending = reports.filter(r => r.status === "pending");
+  const inProgress = reports.filter(r => r.status === "in-progress");
+  const resolved = reports.filter(r => r.status === "resolved");
+
+  const Column = ({ title, icon: Icon, colorClass, bgClass, borderClass, items }) => (
+    <div className={`flex-shrink-0 w-full sm:w-[320px] md:w-[350px] bg-gray-50/50 rounded-2xl border ${borderClass} shadow-sm overflow-hidden flex flex-col h-[calc(100vh-180px)] min-h-[500px]`}>
+      <div className={`p-4 border-b ${borderClass} flex justify-between items-center ${bgClass}`}>
+        <div className="flex items-center gap-2">
+          <Icon size={18} className={colorClass} />
+          <h2 className="font-bold text-gray-900">{title}</h2>
         </div>
-
-        {/* Main Form Box */}
-        <div className="bg-white border border-charcoal/10 p-8 shadow-sm relative">
-          <div className="absolute top-0 left-0 w-full h-1 bg-forest"></div>
-          
-          <form onSubmit={handleUpdate} className="space-y-6">
-            <div className="text-center mb-4">
-              <h2 className="text-sm font-semibold uppercase tracking-widest text-charcoal">
-                Grievance Dispatch Form
-              </h2>
-            </div>
-
-            {/* Report ID */}
-            <div className="flex flex-col">
-              <label htmlFor="reportId" className="text-[9px] uppercase tracking-widest text-charcoal/60 font-bold mb-1">
-                Grievance Log ID *
-              </label>
-              <input
-                id="reportId"
-                type="text"
-                placeholder="e.g. 64b8a21f82f9d504cf8a7ef9"
-                className="w-full border-b border-charcoal/20 focus:border-forest bg-transparent rounded-none py-2 px-1 text-charcoal text-sm outline-none transition-colors placeholder-charcoal/30 font-mono"
-                value={reportId}
-                onChange={(e) => setReportId(e.target.value)}
-                required
-              />
-              <p className="text-[9px] text-charcoal/40 mt-1 uppercase tracking-wider">
-                Pre-populated from dashboard actions or copied manually from logs
-              </p>
-            </div>
-
-            {/* Status Select */}
-            <div className="flex flex-col">
-              <label htmlFor="status" className="text-[9px] uppercase tracking-widest text-charcoal/60 font-bold mb-1">
-                Assigned Integrity Status *
-              </label>
-              <select
-                id="status"
-                className="w-full border-b border-charcoal/20 focus:border-forest bg-transparent rounded-none py-2 px-1 text-charcoal text-sm outline-none transition-colors cursor-pointer"
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-              >
-                <option value="pending">🔴 Pending Verification</option>
-                <option value="in-progress">⏳ Restoration In Progress</option>
-                <option value="resolved">✓ Restored & Verified</option>
-              </select>
-            </div>
-
-            <button
-              type="submit"
-              disabled={!reportId.trim()}
-              className="w-full bg-forest hover:bg-charcoal text-sand hover:text-white py-4 text-xs font-bold uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <span>Dispatch Status Update</span>
-              <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
-            </button>
-          </form>
-
-          {/* Success Banner */}
-          {message && (
-            <div className="mt-6 bg-forest/5 border border-forest/20 text-forest p-4 text-center">
-              <h4 className="text-xs font-bold uppercase tracking-wider mb-1">Success</h4>
-              <p className="text-xs font-light">{message}</p>
-            </div>
-          )}
-
-          {/* Error Banner */}
-          {error && (
-            <div className="mt-6 bg-red-50 border border-red-200 text-red-800 p-4 text-center">
-              <h4 className="text-xs font-bold uppercase tracking-wider mb-1">Dispatch Failed</h4>
-              <p className="text-xs font-light">{error}</p>
-            </div>
-          )}
-        </div>
-
-        {/* Status Guide Cards */}
-        <div className="mt-8 bg-white border border-charcoal/10 p-6 shadow-sm">
-          <div className="flex items-center space-x-2 border-b border-charcoal/10 pb-3 mb-6">
-            <Bookmark size={14} className="text-forest" />
-            <h4 className="text-[10px] uppercase tracking-widest text-charcoal font-bold">
-              Dispatch Status Glossary
-            </h4>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="border border-charcoal/10 p-4 flex flex-col justify-between h-[120px] bg-sand/10">
-              <Clock className="w-5 h-5 text-charcoal/60" />
-              <div>
-                <p className="text-xs font-bold uppercase tracking-wide text-charcoal">Pending</p>
-                <p className="text-[10px] text-charcoal/50 font-light mt-0.5">Anomaly waiting verification</p>
-              </div>
-            </div>
-            
-            <div className="border border-charcoal/10 p-4 flex flex-col justify-between h-[120px] bg-sage/10">
-              <Wrench className="w-5 h-5 text-sage" />
-              <div>
-                <p className="text-xs font-bold uppercase tracking-wide text-charcoal">In Progress</p>
-                <p className="text-[10px] text-charcoal/50 font-light mt-0.5">Dispatched to field teams</p>
-              </div>
-            </div>
-            
-            <div className="border border-charcoal/10 p-4 flex flex-col justify-between h-[120px] bg-forest/5">
-              <CheckCircle className="w-5 h-5 text-forest" />
-              <div>
-                <p className="text-xs font-bold uppercase tracking-wide text-forest">Resolved</p>
-                <p className="text-[10px] text-forest/70 font-light mt-0.5">Asset restored successfully</p>
-              </div>
-            </div>
-          </div>
-        </div>
+        <span className="bg-white text-gray-700 text-xs font-bold px-2.5 py-1 rounded-full shadow-sm border border-gray-100">
+          {items.length}
+        </span>
       </div>
+      
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+        {items.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full text-gray-400 opacity-60">
+            <Icon size={32} className="mb-2" />
+            <p className="text-sm font-medium">Drop empty</p>
+          </div>
+        ) : (
+          items.map(report => (
+            <div key={report._id} className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md hover:border-brand/30 transition-all relative group cursor-default">
+              {updatingId === report._id && (
+                <div className="absolute inset-0 bg-white/70 backdrop-blur-sm rounded-xl flex items-center justify-center z-10">
+                  <RefreshCw size={24} className="text-brand animate-spin" />
+                </div>
+              )}
+              
+              <div className="flex justify-between items-start mb-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 bg-gray-100 px-2 py-0.5 rounded">
+                  {report.category || "General"}
+                </span>
+                <span className="text-[10px] font-mono text-gray-400">
+                  #{report._id.substring(report._id.length - 5)}
+                </span>
+              </div>
+
+              <h3 className="font-bold text-gray-900 text-sm mb-1 leading-snug">{report.title}</h3>
+              <p className="text-xs text-gray-500 mb-4 line-clamp-2">{report.description}</p>
+              
+              <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-100">
+                <div className="text-[10px] text-gray-400 flex flex-col">
+                  <span className="font-medium text-gray-600 capitalize">{report.area || "General Area"}</span>
+                  <span>{formatDistanceToNow(new Date(report.createdAt))} ago</span>
+                </div>
+                {report.imageUrl && (
+                  <div className="w-10 h-10 rounded bg-gray-100 border border-gray-200 overflow-hidden flex-shrink-0">
+                    <img src={report.imageUrl} alt="" className="w-full h-full object-cover" />
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">Update Status</label>
+                <select
+                  value={report.status}
+                  onChange={(e) => handleStatusChange(report._id, e.target.value, report.__v)}
+                  className={`w-full text-xs font-semibold border rounded-lg py-2.5 px-3 focus:ring-2 focus:ring-brand/20 outline-none cursor-pointer transition-colors ${
+                    report.status === 'pending' ? 'bg-status-pending/5 border-status-pending/20 text-status-pending' :
+                    report.status === 'in-progress' ? 'bg-status-inprogress/5 border-status-inprogress/20 text-status-inprogress' :
+                    'bg-status-resolved/5 border-status-resolved/20 text-status-resolved'
+                  }`}
+                >
+                  <option value="pending" className="text-gray-900 font-medium">Pending Verification</option>
+                  <option value="in-progress" className="text-gray-900 font-medium">In Progress (Restoration)</option>
+                  <option value="resolved" className="text-gray-900 font-medium">Resolved & Verified</option>
+                </select>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+
+  const [filter, setFilter] = useState("all");
+
+  const filteredReports = reports.filter(r => filter === "all" || r.status === filter);
+
+  return (
+    <div className="pb-12 max-w-5xl mx-auto space-y-6">
+      
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-1">Update Report Status</h1>
+          <p className="text-sm text-gray-500">Filter and update civic report statuses across your jurisdiction.</p>
+        </div>
+        <button onClick={fetchReports} className="flex items-center gap-2 text-sm text-brand font-semibold hover:bg-brand/10 px-4 py-2 rounded-lg transition-colors">
+          <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
+          Refresh Data
+        </button>
+      </div>
+
+      {/* Filter Tabs */}
+      <div className="bg-white p-2 rounded-xl shadow-sm border border-gray-100 flex overflow-x-auto custom-scrollbar">
+        {[
+          { id: "all", label: "All Reports", count: reports.length },
+          { id: "pending", label: "Pending Verification", count: pending.length },
+          { id: "in-progress", label: "In Restoration", count: inProgress.length },
+          { id: "resolved", label: "Resolved & Verified", count: resolved.length }
+        ].map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setFilter(tab.id)}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-colors ${
+              filter === tab.id 
+                ? "bg-brand text-white shadow-sm" 
+                : "text-gray-600 hover:bg-gray-50"
+            }`}
+          >
+            {tab.label}
+            <span className={`px-2 py-0.5 rounded-full text-xs ${
+              filter === tab.id ? "bg-white/20 text-white" : "bg-gray-100 text-gray-500"
+            }`}>
+              {tab.count}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      {/* Report List */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden min-h-[400px]">
+        {loading && reports.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-[400px] text-gray-400">
+            <Loader2 size={32} className="animate-spin mb-4 text-brand" />
+            <p>Loading reports...</p>
+          </div>
+        ) : filteredReports.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-[400px] text-gray-400 opacity-80">
+            <CheckCircle size={48} className="mb-4 text-gray-300" />
+            <p className="text-lg font-medium text-gray-600 mb-1">No reports found</p>
+            <p className="text-sm">Try changing your status filter above.</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-gray-100">
+            {filteredReports.map(report => (
+              <div key={report._id} className="p-6 hover:bg-gray-50/50 transition-colors flex flex-col md:flex-row gap-6 items-start relative">
+                
+                {updatingId === report._id && (
+                  <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] flex items-center justify-center z-10">
+                    <RefreshCw size={24} className="text-brand animate-spin" />
+                  </div>
+                )}
+
+                {/* Left: Info */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="text-xs font-bold uppercase tracking-wider text-gray-500 bg-gray-100 px-2.5 py-1 rounded-md">
+                      {report.category || "General"}
+                    </span>
+                    <span className="text-xs font-mono text-gray-400">ID: {report._id.substring(report._id.length - 6)}</span>
+                  </div>
+                  
+                  <h3 className="text-lg font-bold text-gray-900 mb-2 truncate">{report.title}</h3>
+                  <p className="text-sm text-gray-600 mb-4 line-clamp-2">{report.description}</p>
+                  
+                  <div className="flex flex-wrap items-center gap-4 text-xs font-medium text-gray-500">
+                    <span className="capitalize flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-brand"></span>
+                      {report.area || "General Area"}
+                    </span>
+                    <span>•</span>
+                    <span className="flex items-center gap-1">
+                      <Clock size={12} />
+                      {formatDistanceToNow(new Date(report.createdAt))} ago
+                    </span>
+                  </div>
+                </div>
+
+                {/* Right: Actions */}
+                <div className="w-full md:w-64 flex-shrink-0 flex flex-col gap-3">
+                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Current Status</label>
+                  <select
+                    value={report.status}
+                    onChange={(e) => handleStatusChange(report._id, e.target.value, report.__v)}
+                    className={`w-full text-sm font-semibold border rounded-xl py-3 px-4 focus:ring-2 focus:ring-brand/20 outline-none cursor-pointer transition-colors shadow-sm ${
+                      report.status === 'pending' ? 'bg-status-pending/5 border-status-pending/30 text-status-pending focus:border-status-pending' :
+                      report.status === 'in-progress' ? 'bg-status-inprogress/5 border-status-inprogress/30 text-status-inprogress focus:border-status-inprogress' :
+                      'bg-status-resolved/5 border-status-resolved/30 text-status-resolved focus:border-status-resolved'
+                    }`}
+                  >
+                    <option value="pending" className="text-gray-900 font-medium">Pending Verification</option>
+                    <option value="in-progress" className="text-gray-900 font-medium">In Progress (Restoration)</option>
+                    <option value="resolved" className="text-gray-900 font-medium">Resolved & Verified</option>
+                  </select>
+                </div>
+
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
     </div>
   );
 };

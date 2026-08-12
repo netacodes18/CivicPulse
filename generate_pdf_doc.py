@@ -1,0 +1,913 @@
+import os
+import subprocess
+
+html_content = """<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CivicPulse - System Architecture & Technical Flow Specification</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+    @page {
+      size: A4;
+      margin: 18mm 15mm 18mm 15mm;
+      @bottom-right {
+        content: counter(page);
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: #1e293b;
+      background-color: #ffffff;
+      line-height: 1.5;
+      font-size: 10.5pt;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Cover Page */
+    .cover-page {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      page-break-after: always;
+      padding: 40px 20px;
+      border-left: 8px solid #2563eb;
+      background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+    }
+
+    .cover-header {
+      margin-top: 40px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 6px 14px;
+      background-color: #eff6ff;
+      color: #2563eb;
+      font-weight: 700;
+      font-size: 9pt;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      border-radius: 20px;
+      border: 1px solid #bfdbfe;
+      margin-bottom: 20px;
+    }
+
+    .cover-title {
+      font-size: 32pt;
+      font-weight: 800;
+      color: #0f172a;
+      line-height: 1.15;
+      margin: 0 0 15px 0;
+      letter-spacing: -0.5px;
+    }
+
+    .cover-subtitle {
+      font-size: 14pt;
+      color: #475569;
+      font-weight: 400;
+      max-width: 650px;
+      margin-bottom: 40px;
+    }
+
+    .cover-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+      margin-top: 40px;
+    }
+
+    .cover-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 18px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    .cover-card h4 {
+      margin: 0 0 8px 0;
+      color: #2563eb;
+      font-size: 11pt;
+      font-weight: 700;
+    }
+
+    .cover-card p {
+      margin: 0;
+      font-size: 9.5pt;
+      color: #64748b;
+    }
+
+    .cover-footer {
+      border-top: 1px solid #e2e8f0;
+      padding-top: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 9pt;
+      color: #94a3b8;
+    }
+
+    /* General Typography */
+    h1 {
+      font-size: 20pt;
+      font-weight: 800;
+      color: #0f172a;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 8px;
+      margin-top: 30px;
+      margin-bottom: 15px;
+      page-break-after: avoid;
+    }
+
+    h2 {
+      font-size: 14pt;
+      font-weight: 700;
+      color: #1e293b;
+      margin-top: 25px;
+      margin-bottom: 12px;
+      page-break-after: avoid;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    h3 {
+      font-size: 11pt;
+      font-weight: 600;
+      color: #334155;
+      margin-top: 18px;
+      margin-bottom: 8px;
+      page-break-after: avoid;
+    }
+
+    p {
+      margin-top: 0;
+      margin-bottom: 12px;
+      text-align: justify;
+    }
+
+    ul, ol {
+      margin-top: 0;
+      margin-bottom: 12px;
+      padding-left: 20px;
+    }
+
+    li {
+      margin-bottom: 6px;
+    }
+
+    /* Page Breaks */
+    .page-break {
+      page-break-after: always;
+    }
+
+    .avoid-break {
+      page-break-inside: avoid;
+    }
+
+    /* Diagrams & Flow Boxes */
+    .flow-container {
+      background-color: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 16px;
+      margin: 16px 0;
+      page-break-inside: avoid;
+    }
+
+    .flow-step {
+      display: flex;
+      align-items: flex-start;
+      margin-bottom: 14px;
+      position: relative;
+    }
+
+    .flow-step:last-child {
+      margin-bottom: 0;
+    }
+
+    .flow-num {
+      background-color: #2563eb;
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 9pt;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-right: 12px;
+      margin-top: 2px;
+    }
+
+    .flow-content {
+      flex: 1;
+    }
+
+    .flow-title {
+      font-weight: 700;
+      color: #0f172a;
+      font-size: 10pt;
+      margin-bottom: 2px;
+    }
+
+    .flow-desc {
+      font-size: 9pt;
+      color: #475569;
+      margin: 0;
+    }
+
+    .flow-tech {
+      display: inline-block;
+      background-color: #e2e8f0;
+      color: #334155;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 8pt;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-top: 4px;
+    }
+
+    /* Visual Architecture Boxes */
+    .arch-box-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin: 16px 0;
+      page-break-inside: avoid;
+    }
+
+    .arch-box {
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 12px;
+      background: #ffffff;
+    }
+
+    .arch-box.frontend { border-top: 4px solid #3b82f6; }
+    .arch-box.backend { border-top: 4px solid #10b981; }
+    .arch-box.async { border-top: 4px solid #f59e0b; }
+    .arch-box.db { border-top: 4px solid #8b5cf6; }
+
+    .arch-box-title {
+      font-weight: 700;
+      font-size: 10pt;
+      margin-bottom: 6px;
+      color: #0f172a;
+    }
+
+    .arch-box-list {
+      font-size: 8.5pt;
+      color: #475569;
+      padding-left: 14px;
+      margin: 0;
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 9pt;
+      page-break-inside: avoid;
+    }
+
+    th {
+      background-color: #0f172a;
+      color: #ffffff;
+      text-align: left;
+      padding: 8px 12px;
+      font-weight: 600;
+      font-size: 8.5pt;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    td {
+      padding: 8px 12px;
+      border-bottom: 1px solid #e2e8f0;
+      color: #334155;
+    }
+
+    tr:nth-child(even) td {
+      background-color: #f8fafc;
+    }
+
+    /* Code Blocks */
+    code, pre {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    code {
+      background-color: #f1f5f9;
+      color: #0f172a;
+      padding: 2px 5px;
+      border-radius: 4px;
+      font-size: 8.5pt;
+      border: 1px solid #e2e8f0;
+    }
+
+    pre {
+      background-color: #0f172a;
+      color: #f8fafc;
+      padding: 14px;
+      border-radius: 8px;
+      font-size: 8.5pt;
+      line-height: 1.45;
+      overflow-x: auto;
+      margin: 14px 0;
+      page-break-inside: avoid;
+    }
+
+    pre code {
+      background: none;
+      color: inherit;
+      padding: 0;
+      border: none;
+    }
+
+    /* Callout Box */
+    .callout {
+      border-left: 4px solid #2563eb;
+      background-color: #eff6ff;
+      padding: 12px 16px;
+      border-radius: 0 6px 6px 0;
+      margin: 16px 0;
+      page-break-inside: avoid;
+    }
+
+    .callout.warning {
+      border-left-color: #f59e0b;
+      background-color: #fffbeb;
+    }
+
+    .callout.success {
+      border-left-color: #10b981;
+      background-color: #ecfdf5;
+    }
+
+    .callout-title {
+      font-weight: 700;
+      font-size: 9.5pt;
+      margin-bottom: 4px;
+      color: #0f172a;
+    }
+
+    .callout-body {
+      font-size: 9pt;
+      color: #334155;
+      margin: 0;
+    }
+
+    /* Sequence Diagram Box */
+    .seq-box {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 8pt;
+      background-color: #1e293b;
+      color: #38bdf8;
+      padding: 14px;
+      border-radius: 8px;
+      line-height: 1.5;
+      white-space: pre;
+      margin: 14px 0;
+      page-break-inside: avoid;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- COVER PAGE -->
+  <div class="cover-page">
+    <div class="cover-header">
+      <div class="badge">Technical Reference Architecture</div>
+      <h1 class="cover-title">CivicPulse</h1>
+      <div class="cover-subtitle">
+        End-to-End System Architecture, Asynchronous Data Pipelines, Protocols, and Detailed Execution Flows for Urban Anomaly Management
+      </div>
+    </div>
+
+    <div>
+      <div class="cover-grid">
+        <div class="cover-card">
+          <h4>Event-Driven Architecture</h4>
+          <p>RabbitMQ message broker & background notification workers for async SMS/email dispatching.</p>
+        </div>
+        <div class="cover-card">
+          <h4>Jurisdictional Partitioning</h4>
+          <p>State & area scoped multi-tenant data retrieval and role-based access control (RBAC).</p>
+        </div>
+        <div class="cover-card">
+          <h4>Optimistic Concurrency Control</h4>
+          <p>Version-backed (__v) atomic document updates preventing administrative race conditions.</p>
+        </div>
+        <div class="cover-card">
+          <h4>Idempotent Ingestion</h4>
+          <p>Sparse unique index validation preventing duplicate issue submissions on network retries.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="cover-footer">
+      <div>Author: Engineering Team</div>
+      <div>Document Version: 2.1.0</div>
+      <div>Date: August 2026</div>
+    </div>
+  </div>
+
+  <!-- SECTION 1: SYSTEM OVERVIEW -->
+  <h1>1. Executive Summary & System Overview</h1>
+  <p>
+    <strong>CivicPulse</strong> is an enterprise-grade civic technology platform designed to bridge the operational gap between citizens and municipal administrations in India. The platform enables citizens to log urban anomalies (potholes, streetlighting failures, sanitation issues, water leakage) complete with photographic evidence, precise geolocation coordinates, and categorization tags.
+  </p>
+  <p>
+    Concurrently, municipal authorities access a localized, role-governed administrative dashboard that provides real-time triage, state/area level filtering, status tracking (<em>Pending &rarr; In Progress &rarr; Resolved</em>), and automated citizen notification dispatching.
+  </p>
+
+  <div class="arch-box-grid">
+    <div class="arch-box frontend">
+      <div class="arch-box-title">Client Layer</div>
+      <ul class="arch-box-list">
+        <li>React 19 &amp; Vite 6</li>
+        <li>Tailwind CSS Utility Engine</li>
+        <li>Axios JWT Interceptor</li>
+        <li>i18next Internationalization</li>
+      </ul>
+    </div>
+
+    <div class="arch-box backend">
+      <div class="arch-box-title">Gateway &amp; API Layer</div>
+      <ul class="arch-box-list">
+        <li>Node.js / Express.js REST API</li>
+        <li>Bcryptjs Password Hashing</li>
+        <li>Express Rate Limiter</li>
+        <li>Multer Attachment Handling</li>
+      </ul>
+    </div>
+
+    <div class="arch-box async">
+      <div class="arch-box-title">Async &amp; Messaging</div>
+      <ul class="arch-box-list">
+        <li>RabbitMQ Message Broker</li>
+        <li>Durable Notification Queues</li>
+        <li>Background Consumer Worker</li>
+        <li>SMS &amp; Email Transports</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- SECTION 2: END-TO-END SYSTEM TOPOLOGY -->
+  <h1>2. Global Architectural Topology</h1>
+  <p>
+    The system follows a modern decoupled architecture. The frontend SPA communicates statelessly over HTTP/REST using JSON Web Tokens (JWT). The backend handles data persistence in MongoDB while delegating non-blocking side-effects (notifications) to RabbitMQ.
+  </p>
+
+  <div class="seq-box">
++-----------------------------------------------------------------------------------+
+|                                CLIENT APPLICATION                                 |
+|                 React 19 SPA (Citizen Portal & Admin Dashboard)                    |
++-----------------------------------------+-----------------------------------------+
+                                          |
+                              REST API (HTTPS + JWT Bearer)
+                                          |
+                                          v
++-----------------------------------------------------------------------------------+
+|                              EXPRESS API GATEWAY                                  |
+|   +-------------------+    +--------------------+    +------------------------+   |
+|   |  Rate Limiting    | -> |  JWT Auth Guard    | -> | Controller Handlers    |   |
+|   +-------------------+    +--------------------+    +------------------------+   |
++------------------+----------------------------------------------+-----------------+
+                   |                                              |
+     Read / Write  |                                              | Publish Event
+     Mongoose ODM  v                                              v
++------------------+--------------------+        +----------------+-----------------+
+|          MONGODB DATABASE             |        |        RABBITMQ BROKER           |
+|  - Users Collection (State/Area Scoped)|        |  - Queue: notification_queue   |
+|  - Reports Collection (Compound Index)|        +----------------+-----------------+
+|  - Comments Collection                |                         |
++---------------------------------------+                         | Consume Message
+                                                                  v
+                                                 +----------------+-----------------+
+                                                 |   BACKGROUND NOTIFICATION WORKER |
+                                                 |  - SMS Gateway Dispatcher        |
+                                                 |  - Nodemailer SMTP Dispatcher    |
+                                                 +----------------------------------+
+  </div>
+
+  <div class="page-break"></div>
+
+  <!-- SECTION 3: DETAILED EXECUTION FLOWS -->
+  <h1>3. Detailed Architectural Execution Flows</h1>
+
+  <h2>Flow 1: Citizen Registration & Authentication Sequence</h2>
+  <p>
+    Ensures secure user onboarding, role determination (Citizen vs Admin), state/area scope assignment, and password hashing before returning a signed JWT token.
+  </p>
+
+  <div class="flow-container">
+    <div class="flow-step">
+      <div class="flow-num">1</div>
+      <div class="flow-content">
+        <div class="flow-title">Client Credentials Submission</div>
+        <div class="flow-desc">User submits username, email, phone, state, area, role, and password via the Signup page.</div>
+        <div class="flow-tech">POST /api/auth/signup</div>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-num">2</div>
+      <div class="flow-content">
+        <div class="flow-title">Validation & Hashing</div>
+        <div class="flow-desc">Backend checks for existing email/username collision, then generates a salt and hashes the password using <code>bcryptjs</code> (10 salt rounds).</div>
+        <div class="flow-tech">authController.js &bull; bcrypt.hash()</div>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-num">3</div>
+      <div class="flow-content">
+        <div class="flow-title">Database Storage & JWT Issuance</div>
+        <div class="flow-desc">Saves user record to MongoDB. Signs a JWT token containing <code>id</code>, <code>username</code>, <code>role</code>, <code>state</code>, and <code>area</code>.</div>
+        <div class="flow-tech">jsonwebtoken.sign()</div>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-num">4</div>
+      <div class="flow-content">
+        <div class="flow-title">Client AuthContext Initialization</div>
+        <div class="flow-desc">Frontend stores JWT in <code>localStorage</code>. Axios interceptor automatically injects <code>Authorization: Bearer &lt;token&gt;</code> into all subsequent HTTP headers.</div>
+        <div class="flow-tech">AuthContext.jsx &bull; axios.js</div>
+      </div>
+    </div>
+  </div>
+
+  <h2>Flow 2: Incident Reporting & Evidence Ingestion Pipeline</h2>
+  <p>
+    Handles multipart image upload, GPS coordinate parsing, idempotency validation to prevent duplicate tickets, and database record creation.
+  </p>
+
+  <div class="flow-container">
+    <div class="flow-step">
+      <div class="flow-num">1</div>
+      <div class="flow-content">
+        <div class="flow-title">Idempotency & Payload Preparation</div>
+        <div class="flow-desc">Frontend generates a UUID for <code>x-idempotency-key</code> and packages title, description, category, latitude, longitude, and image file into <code>FormData</code>.</div>
+        <div class="flow-tech">Report.jsx &bull; crypto.randomUUID()</div>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-num">2</div>
+      <div class="flow-content">
+        <div class="flow-title">Multer File Processing</div>
+        <div class="flow-desc">Express middleware validates image MIME type (.jpg, .png), generates a timestamped unique filename, and saves the file to local disk (<code>/uploads/</code>).</div>
+        <div class="flow-tech">middleware/upload.js &bull; Multer</div>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-num">3</div>
+      <div class="flow-content">
+        <div class="flow-title">Idempotent MongoDB Save</div>
+        <div class="flow-desc">Creates a new Report document with state/area copied from <code>req.user</code>. If a network retry re-sends the same idempotency key, MongoDB's sparse unique index throws code <code>11000</code>, returning a duplicate safety response without creating a second record.</div>
+        <div class="flow-tech">userController.js &bull; createReport()</div>
+      </div>
+    </div>
+  </div>
+
+  <h2>Flow 3: Administrative Triage & Dashboard Aggregation</h2>
+  <p>
+    Provides municipal administrators with real-time statistics (total, pending, active, resolved reports) for their specific jurisdiction using a single MongoDB aggregation query.
+  </p>
+
+  <div class="seq-box">
+ADMIN CLIENT                   ADMIN CONTROLLER                  MONGODB AGGREGATION PIPELINE
+     |                                |                                       |
+     |--- GET /api/admin/dashboard -->|                                       |
+     |                                |--- aggregate([                       |
+     |                                |      { $match: { state: adminState } },|
+     |                                |      { $group: {                      |
+     |                                |          total: { $sum: 1 },          |
+     |                                |          pending: { $sum: $cond(...) },|
+     |                                |          resolved: { $sum: $cond(...) }|
+     |                                |        }                              |
+     |                                |      }                                |
+     |                                |    ]) ------------------------------->|
+     |                                |<-- Returns Aggregated Stats Bucket ---|
+     |<-- HTTP 200 { stats, recent } -|                                       |
+  </div>
+
+  <div class="page-break"></div>
+
+  <h2>Flow 4: Optimistic Concurrency Control (OCC) for Status Updates</h2>
+  <p>
+    Prevents race conditions when multiple municipal administrators attempt to update the same anomaly report simultaneously.
+  </p>
+
+  <div class="flow-container">
+    <div class="flow-step">
+      <div class="flow-num">1</div>
+      <div class="flow-content">
+        <div class="flow-title">Version-Aware Status Request</div>
+        <div class="flow-desc">Admin sends new status (e.g., <code>resolved</code>) along with the current document version <code>__v</code>.</div>
+        <div class="flow-tech">PUT /api/admin/report/:id/status { status, version: __v }</div>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-num">2</div>
+      <div class="flow-content">
+        <div class="flow-title">Atomic Find & Increment</div>
+        <div class="flow-desc">Backend executes <code>Report.findOneAndUpdate({ _id, __v: version }, { $set: { status }, $inc: { __v: 1 } })</code>.</div>
+        <div class="flow-tech">adminController.js &bull; OCC Check</div>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-num">3</div>
+      <div class="flow-content">
+        <div class="flow-title">Conflict Resolution (409 Conflict)</div>
+        <div class="flow-desc">If another admin updated the document first, the version match fails. The controller returns <code>409 Conflict</code>, informing the user that the report was recently modified and requires a dashboard refresh.</div>
+        <div class="flow-tech">HTTP 409 Conflict Response</div>
+      </div>
+    </div>
+  </div>
+
+  <h2>Flow 5: Asynchronous Notification Pipeline (RabbitMQ Event Fan-Out)</h2>
+  <p>
+    Offloads non-critical side effects (sending SMS/email notifications to citizens) out of the main HTTP execution thread into a durable message queue.
+  </p>
+
+  <div class="seq-box">
+ADMIN ACTION               RABBITMQ BROKER               NOTIFICATION WORKER           RECIPIENT
+     |                            |                               |                        |
+     |-- Update Report Status --->|                               |                        |
+     |   (Status Changed)         |                               |                        |
+     |                            |                               |                        |
+     |-- Publish Event ---------->|                               |                        |
+     |   "notification_queue"     |                               |                        |
+     |                            |-- Deliver Message (AMQP) ---->|                        |
+     |<-- HTTP 200 OK (Instant) --|                               |-- Send SMS / Email --->|
+     |                            |                               |    (Async / Non-block) |
+  </div>
+
+  <!-- SECTION 4: DATABASE SCHEMAS -->
+  <h1>4. Database Schema Specifications</h1>
+
+  <h2>4.1 User Document Schema</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Field Path</th>
+        <th>BSON Type</th>
+        <th>Validation / Index</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>_id</code></td>
+        <td>ObjectId</td>
+        <td>Primary Key</td>
+        <td>Unique user identifier.</td>
+      </tr>
+      <tr>
+        <td><code>username</code></td>
+        <td>String</td>
+        <td>Unique, Trim, Required</td>
+        <td>Citizen or Admin login handle.</td>
+      </tr>
+      <tr>
+        <td><code>email</code></td>
+        <td>String</td>
+        <td>Unique, Required, Index</td>
+        <td>User email address for alerts.</td>
+      </tr>
+      <tr>
+        <td><code>password</code></td>
+        <td>String</td>
+        <td>Required</td>
+        <td>Bcrypt hashed password string.</td>
+      </tr>
+      <tr>
+        <td><code>role</code></td>
+        <td>String</td>
+        <td>Enum: <code>['user', 'admin']</code></td>
+        <td>System access control level.</td>
+      </tr>
+      <tr>
+        <td><code>state</code></td>
+        <td>String</td>
+        <td>Required, Index</td>
+        <td>Jurisdictional state partition.</td>
+      </tr>
+      <tr>
+        <td><code>area</code></td>
+        <td>String</td>
+        <td>Index</td>
+        <td>Local district/area partition.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>4.2 Report Document Schema</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Field Path</th>
+        <th>BSON Type</th>
+        <th>Validation / Index</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>_id</code></td>
+        <td>ObjectId</td>
+        <td>Primary Key</td>
+        <td>Unique issue report identifier.</td>
+      </tr>
+      <tr>
+        <td><code>title</code></td>
+        <td>String</td>
+        <td>Required, Trim</td>
+        <td>Short summary of the urban anomaly.</td>
+      </tr>
+      <tr>
+        <td><code>category</code></td>
+        <td>String</td>
+        <td>Default: <code>'other'</code></td>
+        <td>Category (roads, sanitation, water, electricity).</td>
+      </tr>
+      <tr>
+        <td><code>status</code></td>
+        <td>String</td>
+        <td>Enum: <code>['pending', 'in-progress', 'resolved']</code></td>
+        <td>Resolution lifecycle status.</td>
+      </tr>
+      <tr>
+        <td><code>user</code></td>
+        <td>ObjectId</td>
+        <td>Ref: User, Index</td>
+        <td>Foreign key to submitting user.</td>
+      </tr>
+      <tr>
+        <td><code>state</code>, <code>area</code></td>
+        <td>String</td>
+        <td>Compound Index <code>{ state: 1, area: 1 }</code></td>
+        <td>Geographic scoping fields.</td>
+      </tr>
+      <tr>
+        <td><code>coordinates</code></td>
+        <td>Object</td>
+        <td><code>{ lat: Number, lng: Number }</code></td>
+        <td>Spatial location parameters.</td>
+      </tr>
+      <tr>
+        <td><code>idempotencyKey</code></td>
+        <td>String</td>
+        <td>Sparse, Unique Index</td>
+        <td>Prevents duplicate request submission.</td>
+      </tr>
+      <tr>
+        <td><code>__v</code></td>
+        <td>Number</td>
+        <td>Default: <code>0</code></td>
+        <td>Version key for Optimistic Concurrency Control.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="page-break"></div>
+
+  <!-- SECTION 5: SECURITY & PERFORMANCE -->
+  <h1>5. Security, Performance & Resiliency Infrastructure</h1>
+
+  <div class="callout">
+    <div class="callout-title">Rate Limiting Protection</div>
+    <div class="callout-body">
+      Configured via <code>express-rate-limit</code>. Auth routes (<code>/api/auth/*</code>) are strictly capped at 15 requests per 15-minute window to prevent brute force login attempts. General API endpoints are capped at 100 requests per 15 minutes.
+    </div>
+  </div>
+
+  <div class="callout success">
+    <div class="callout-title">Compound Database Indexes</div>
+    <div class="callout-body">
+      To ensure fast query performance across millions of rows, compound indexes on <code>{ state: 1, area: 1 }</code> and single field indexes on <code>user</code>, <code>email</code>, and <code>idempotencyKey</code> allow MongoDB to execute index scans (IXSCAN) instead of full collection scans (COLLSCAN).
+    </div>
+  </div>
+
+  <div class="callout warning">
+    <div class="callout-title">Graceful RabbitMQ Fallback</div>
+    <div class="callout-body">
+      In environments where RabbitMQ is offline or unconfigured, the backend logs a graceful warning and continues serving HTTP traffic without crashing, operating in mock notification mode.
+    </div>
+  </div>
+
+  <!-- SECTION 6: API REFERENCE CHEAT SHEET -->
+  <h1>6. Core API Endpoint Specification</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>Method</th>
+        <th>Endpoint Path</th>
+        <th>Access Level</th>
+        <th>Functionality</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>POST</code></td>
+        <td><code>/api/auth/signup</code></td>
+        <td>Public</td>
+        <td>Register new user/admin with state &amp; area.</td>
+      </tr>
+      <tr>
+        <td><code>POST</code></td>
+        <td><code>/api/auth/login</code></td>
+        <td>Public</td>
+        <td>Authenticate credentials &amp; return JWT.</td>
+      </tr>
+      <tr>
+        <td><code>POST</code></td>
+        <td><code>/api/user/report</code></td>
+        <td>User / Admin</td>
+        <td>Submit report with image attachment &amp; GPS.</td>
+      </tr>
+      <tr>
+        <td><code>GET</code></td>
+        <td><code>/api/user/my-reports</code></td>
+        <td>User / Admin</td>
+        <td>Fetch issues logged by current user.</td>
+      </tr>
+      <tr>
+        <td><code>GET</code></td>
+        <td><code>/api/user/community</code></td>
+        <td>User / Admin</td>
+        <td>Fetch community reports within user's state.</td>
+      </tr>
+      <tr>
+        <td><code>POST</code></td>
+        <td><code>/api/user/report/:id/upvote</code></td>
+        <td>User / Admin</td>
+        <td>Toggle community upvote on report.</td>
+      </tr>
+      <tr>
+        <td><code>GET</code></td>
+        <td><code>/api/admin/reports</code></td>
+        <td>Admin Only</td>
+        <td>Fetch all state/area reports for admin triage.</td>
+      </tr>
+      <tr>
+        <td><code>GET</code></td>
+        <td><code>/api/admin/dashboard-stats</code></td>
+        <td>Admin Only</td>
+        <td>Single-query aggregation for dashboard counters.</td>
+      </tr>
+      <tr>
+        <td><code>PUT</code></td>
+        <td><code>/api/admin/report/:id/status</code></td>
+        <td>Admin Only</td>
+        <td>Update report status with OCC version check.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <br/><br/>
+  <div style="text-align: center; color: #94a3b8; font-size: 9pt; margin-top: 40px; border-top: 1px solid #e2e8f0; padding-top: 15px;">
+    &copy; 2026 CivicPulse Platform Architecture Specification &bull; Confidential &amp; Proprietary
+  </div>
+
+</body>
+</html>
+"""
+
+html_path = r"c:\Users\Utkarsh Pratap\civicpulse\CivicPulse\docs\architecture_pdf.html"
+pdf_path = r"c:\Users\Utkarsh Pratap\civicpulse\CivicPulse\CivicPulse_Architecture_Flow.pdf"
+
+with open(html_path, "w", encoding="utf-8") as f:
+    f.write(html_content)
+
+print(f"HTML file created at {html_path}")
+
+edge_path = r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
+cmd = [
+    "powershell",
+    "-Command",
+    f'Start-Process -FilePath "{edge_path}" -ArgumentList "--headless=new", "--print-to-pdf=`"{pdf_path}`"", "`"file:///{html_path.replace("\\", "/")}`"" -Wait'
+]
+
+print("Running Edge headless print-to-pdf command...")
+result = subprocess.run(cmd, capture_output=True, text=True)
+print("Return code:", result.returncode)
+
+if os.path.exists(pdf_path):
+    print(f"SUCCESS: PDF generated at {pdf_path} (Size: {os.path.getsize(pdf_path)} bytes)")
+else:
+    print("PDF generation failed.")

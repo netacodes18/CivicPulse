@@ -15,14 +15,16 @@ const app = express();
 // ===================================================
 const allowedOrigins = [
   "http://localhost:5173",
+  "http://localhost:5174",
+  "http://localhost:5175",
   "https://civic-pulse-steel.vercel.app"
 ];
 
 app.use(cors({
   origin: allowedOrigins,
   credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "Idempotency-Key"],
 }));
 
 // ✅ Preflight support (MANDATORY)
@@ -74,9 +76,12 @@ app.use("/api", generalLimiter);
 // ===================================================
 // API Routes
 // ===================================================
+const publicRoutes = require("./routes/publicRoutes");
+
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/public", publicRoutes);
 
 // ===================================================
 // Health Check
