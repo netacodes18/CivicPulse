@@ -236,8 +236,8 @@ const UserProfile = () => {
                   <MapPin size={18} className="text-brand mr-2" />
                   <span>{profile.state}</span>
                 </p>
-              </div>
-            )}
+              )}
+            </div>
             
             {/* Area */}
             <div className="bg-gray-50/50 rounded-2xl p-5 border border-gray-100">
