@@ -107,7 +107,9 @@ const Login = () => {
                 className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none transition-colors appearance-none cursor-pointer bg-white"
               >
                 <option value="user">Citizen User</option>
+                <option value="moderator">Department Moderator</option>
                 <option value="admin">Municipal Admin</option>
+                <option value="super_admin">Super Admin</option>
               </select>
             </div>
 
