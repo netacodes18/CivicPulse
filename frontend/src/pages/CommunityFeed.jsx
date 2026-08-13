@@ -111,11 +111,28 @@ const CommunityFeed = () => {
   const handleUpvote = async (reportId) => {
     if (upvotingId) return;
     setUpvotingId(reportId);
+    
+    // Optimistic Update
+    setReports(prevReports => prevReports.map(report => {
+      if (report._id === reportId) {
+        const hasVoted = report.upvotes?.some((u) => (typeof u === "object" ? u._id : u) === user?.id);
+        let newUpvotes = [...(report.upvotes || [])];
+        if (hasVoted) {
+          newUpvotes = newUpvotes.filter(u => (typeof u === "object" ? u._id : u) !== user?.id);
+        } else {
+          newUpvotes.push(user?.id);
+        }
+        return { ...report, upvotes: newUpvotes };
+      }
+      return report;
+    }));
+
     try {
       await api.post(`/api/user/report/${reportId}/upvote`, {}, { headers: { Authorization: `Bearer ${token}` } });
-      await fetchData();
+      // Removed fetchData() to prevent slow UI reload. The optimistic update handles the UI.
     } catch (err) {
       console.error("Upvote error", err);
+      await fetchData(); // Revert on failure
     } finally {
       setUpvotingId(null);
     }

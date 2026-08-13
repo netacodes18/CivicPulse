@@ -58,11 +58,25 @@ const ReportDetail = () => {
   const handleUpvote = async () => {
     if (upvoting) return;
     setUpvoting(true);
+    
+    // Optimistic Update
+    setReport(prev => {
+      const hasVoted = prev.upvotes?.some((u) => (typeof u === "object" ? u._id : u) === user?.id);
+      let newUpvotes = [...(prev.upvotes || [])];
+      if (hasVoted) {
+        newUpvotes = newUpvotes.filter(u => (typeof u === "object" ? u._id : u) !== user?.id);
+      } else {
+        newUpvotes.push(user?.id);
+      }
+      return { ...prev, upvotes: newUpvotes };
+    });
+
     try {
       await api.post(`/api/user/report/${id}/upvote`, {}, { headers: { Authorization: `Bearer ${token}` } });
-      await fetchReport();
+      // Removed fetchReport() to prevent slow UI reloading.
     } catch (err) {
       console.error("Upvote error", err);
+      await fetchReport(); // Revert on error
     } finally {
       setUpvoting(false);
     }
