@@ -6,17 +6,29 @@ const Group = require("../models/Group");
 const Category = require("../models/Category");
 const Announcement = require("../models/Announcement");
 
-exports.getUserProfile = (req, res) => {
-  res.json({
-    message: `Welcome ${req.user.username}, you are authenticated as a user.`,
-    user: {
-      id: req.user.id,
-      username: req.user.username,
-      role: req.user.role,
-      state: req.user.state,
-      area: req.user.area,
-    },
-  });
+exports.getUserProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("-password");
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.json({
+      message: `Welcome ${user.username}, you are authenticated as a user.`,
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+        department: user.department,
+        state: user.state,
+        area: user.area,
+        pincode: user.pincode,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Error fetching profile", error: err.message });
+  }
 };
 
 exports.updateUserProfile = async (req, res) => {

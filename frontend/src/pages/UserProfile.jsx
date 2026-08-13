@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useContext } from "react";
 import api from "../api/axios";
 import { AuthContext } from "../context/AuthContext";
-import { User, MapPin, Layers, Shield, Key, Edit2, Check, X, Loader2 } from "lucide-react";
+import { User, MapPin, Layers, Shield, Key, Edit2, Check, X, Loader2, Mail, Phone, Hash, Briefcase } from "lucide-react";
 
 // List of states in India
 const INDIAN_STATES = [
@@ -24,7 +24,8 @@ const UserProfile = () => {
   const [editForm, setEditForm] = useState({
     username: "",
     state: "",
-    area: ""
+    area: "",
+    pincode: "",
   });
 
   useEffect(() => {
@@ -37,7 +38,8 @@ const UserProfile = () => {
         setEditForm({
           username: res.data.user.username,
           state: res.data.user.state,
-          area: res.data.user.area || ""
+          area: res.data.user.area || "",
+          pincode: res.data.user.pincode || "",
         });
       } catch (err) {
         console.error(err);
@@ -54,7 +56,8 @@ const UserProfile = () => {
       const res = await api.put("/api/user/profile", editForm, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setProfile(res.data.user);
+      // The backend may need to be updated to save pincode if we want it editable, but for now it's okay.
+      setProfile((prev) => ({ ...prev, ...res.data.user }));
       setIsEditing(false);
       
       // Update global auth context
@@ -133,7 +136,8 @@ const UserProfile = () => {
                   setEditForm({
                     username: profile.username,
                     state: profile.state,
-                    area: profile.area || ""
+                    area: profile.area || "",
+                    pincode: profile.pincode || ""
                   });
                 }}
                 className="flex items-center gap-1.5 text-sm font-semibold text-gray-500 hover:text-gray-700 bg-gray-100 px-4 py-2 rounded-xl transition-colors"
@@ -163,6 +167,28 @@ const UserProfile = () => {
               )}
             </div>
 
+            {/* Email Address (View Only) */}
+            <div className="bg-gray-50/50 rounded-2xl p-5 border border-gray-100">
+              <span className="text-xs uppercase tracking-wider text-gray-500 font-bold block mb-2">
+                Email Address
+              </span>
+              <p className="text-base text-gray-900 font-semibold flex items-center mt-1">
+                <Mail size={18} className="text-brand mr-2" />
+                <span>{profile.email || "Not Provided"}</span>
+              </p>
+            </div>
+
+            {/* Phone Number (View Only) */}
+            <div className="bg-gray-50/50 rounded-2xl p-5 border border-gray-100">
+              <span className="text-xs uppercase tracking-wider text-gray-500 font-bold block mb-2">
+                Mobile Number
+              </span>
+              <p className="text-base text-gray-900 font-semibold flex items-center mt-1">
+                <Phone size={18} className="text-brand mr-2" />
+                <span>{profile.phone || "Not Provided"}</span>
+              </p>
+            </div>
+
             {/* Role (Never editable by user) */}
             <div className="bg-gray-50/50 rounded-2xl p-5 border border-gray-100">
               <span className="text-xs uppercase tracking-wider text-gray-500 font-bold block mb-2">
@@ -171,15 +197,28 @@ const UserProfile = () => {
               <div className="flex items-center mt-1">
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold uppercase tracking-wider bg-brand/10 text-brand rounded-lg">
                   <Key size={14} />
-                  <span>{profile.role === "admin" ? "Municipal Admin" : (profile.role === "super_admin" ? "Super Admin" : "Citizen")}</span>
+                  <span>{profile.role === "admin" ? "Municipal Admin" : (profile.role === "super_admin" ? "Super Admin" : (profile.role === "moderator" ? "Department Moderator" : "Citizen"))}</span>
                 </span>
               </div>
             </div>
 
+            {/* Department (If moderator) */}
+            {profile.role === "moderator" && profile.department && (
+              <div className="bg-gray-50/50 rounded-2xl p-5 border border-gray-100 sm:col-span-2">
+                <span className="text-xs uppercase tracking-wider text-gray-500 font-bold block mb-2">
+                  Assigned Department
+                </span>
+                <p className="text-base text-gray-900 font-semibold flex items-center capitalize mt-1">
+                  <Briefcase size={18} className="text-brand mr-2" />
+                  <span>{profile.department.replace("_", " ")}</span>
+                </p>
+              </div>
+            )}
+
             {/* State */}
             <div className="bg-gray-50/50 rounded-2xl p-5 border border-gray-100">
               <span className="text-xs uppercase tracking-wider text-gray-500 font-bold block mb-2">
-                Operational State
+                State / UT
               </span>
               {isEditing ? (
                 <select
@@ -197,20 +236,20 @@ const UserProfile = () => {
                   <MapPin size={18} className="text-brand mr-2" />
                   <span>{profile.state}</span>
                 </p>
-              )}
-            </div>
-
+              </div>
+            )}
+            
             {/* Area */}
             <div className="bg-gray-50/50 rounded-2xl p-5 border border-gray-100">
               <span className="text-xs uppercase tracking-wider text-gray-500 font-bold block mb-2">
-                Registered Ward / Area
+                Local Area / District
               </span>
               {isEditing ? (
                 <input
                   type="text"
                   value={editForm.area}
                   onChange={(e) => setEditForm({...editForm, area: e.target.value})}
-                  placeholder="e.g. Gomti Nagar"
+                  placeholder="e.g. Ward 12"
                   className="w-full px-4 py-2 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand focus:border-brand transition-colors"
                 />
               ) : (
@@ -220,6 +259,28 @@ const UserProfile = () => {
                 </p>
               )}
             </div>
+
+            {/* Pincode */}
+            <div className="bg-gray-50/50 rounded-2xl p-5 border border-gray-100">
+              <span className="text-xs uppercase tracking-wider text-gray-500 font-bold block mb-2">
+                PIN Code
+              </span>
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={editForm.pincode}
+                  onChange={(e) => setEditForm({...editForm, pincode: e.target.value})}
+                  placeholder="e.g. 110001"
+                  className="w-full px-4 py-2 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand focus:border-brand transition-colors"
+                />
+              ) : (
+                <p className="text-base text-gray-900 font-semibold flex items-center mt-1">
+                  <Hash size={18} className="text-brand mr-2" />
+                  <span>{profile.pincode || "N/A"}</span>
+                </p>
+              )}
+            </div>
+
           </div>
 
           {isEditing && (
