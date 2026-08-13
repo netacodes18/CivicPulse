@@ -1,4 +1,4 @@
-import { createContext, useEffect, useState, useCallback } from "react";
+import { createContext, useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
 
 export const AuthContext = createContext();
@@ -26,14 +26,10 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = useCallback(() => {
+  const logout = () => {
     localStorage.removeItem("token");
     setUser(null);
     setToken(null);
-  }, []);
-
-  const updateUser = (updatedFields) => {
-    setUser((prev) => (prev ? { ...prev, ...updatedFields } : updatedFields));
   };
 
   useEffect(() => {
@@ -48,23 +44,11 @@ export const AuthProvider = ({ children }) => {
     } catch {
       logout();
     }
-  }, [logout]);
-
-  useEffect(() => {
-    const handleUnauthorized = () => {
-      logout();
-    };
-
-    window.addEventListener("auth:unauthorized", handleUnauthorized);
-    return () => {
-      window.removeEventListener("auth:unauthorized", handleUnauthorized);
-    };
-  }, [logout]);
+  }, []);
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, updateUser }}>
+    <AuthContext.Provider value={{ user, token, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
 };
-
