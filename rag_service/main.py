@@ -146,6 +146,38 @@ async def root():
     return {"message": "CivicPulse RAG Service is running. Visit /health for details."}
 
 
+@app.get("/debug/test-llm")
+async def debug_test_llm():
+    """Diagnostic: test if the LLM can generate a response."""
+    import traceback
+    try:
+        from langchain_google_genai import ChatGoogleGenerativeAI
+        from langchain_core.messages import HumanMessage
+
+        llm = ChatGoogleGenerativeAI(
+            model=config.LLM_MODEL,
+            api_key=config.GOOGLE_API_KEY,
+            temperature=0.3,
+            max_output_tokens=100,
+        )
+        result = await llm.ainvoke([HumanMessage(content="Say hello in one sentence.")])
+        return {
+            "status": "success",
+            "response": result.content,
+            "model": config.LLM_MODEL,
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "error_type": type(e).__name__,
+            "error_message": str(e),
+            "traceback": traceback.format_exc(),
+            "model": config.LLM_MODEL,
+            "api_key_set": bool(config.GOOGLE_API_KEY),
+            "api_key_prefix": config.GOOGLE_API_KEY[:8] + "..." if config.GOOGLE_API_KEY else "NOT SET",
+        }
+
+
 # ── Run with Uvicorn ──────────────────────────────────────────
 if __name__ == "__main__":
     import uvicorn
