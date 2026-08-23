@@ -43,7 +43,7 @@ class Config:
     PORT: int = int(os.getenv("RAG_SERVICE_PORT", "8000"))
 
     # ── Rate Limiting ──────────────────────────────────────────
-    RATE_LIMIT_PER_MINUTE: int = int(os.getenv("RATE_LIMIT_PER_MINUTE", "20"))
+    RATE_LIMIT_PER_MINUTE: int = int(os.getenv("RATE_LIMIT_PER_MINUTE", "100"))
 
     # ── Web Search Grounding ──────────────────────────────
     WEB_SEARCH_ENABLED: bool = os.getenv("WEB_SEARCH_ENABLED", "true").lower() == "true"
