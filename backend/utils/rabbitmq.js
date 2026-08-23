@@ -12,24 +12,34 @@ const connectRabbitMQ = async () => {
     return;
   }
 
-  try {
-    connection = await amqp.connect(RABBITMQ_URI);
-    
-    // Add error handlers to prevent unhandled socket errors from crashing the Node process
-    connection.on("error", (err) => {
-      console.error("🔴 RabbitMQ Connection Error:", err.message);
-    });
-    connection.on("close", () => {
-      console.warn("🟡 RabbitMQ Connection Closed");
-      channel = null;
-      connection = null;
-    });
+  let retries = 5;
+  while (retries > 0) {
+    try {
+      connection = await amqp.connect(RABBITMQ_URI, { family: 4 });
+      
+      // Add error handlers to prevent unhandled socket errors from crashing the Node process
+      connection.on("error", (err) => {
+        console.error("🔴 RabbitMQ Connection Error:", err.message);
+      });
+      connection.on("close", () => {
+        console.warn("🟡 RabbitMQ Connection Closed");
+        channel = null;
+        connection = null;
+      });
 
-    channel = await connection.createChannel();
-    console.log("🐰 Connected to RabbitMQ");
-  } catch (error) {
-    console.error("🔴 Failed to connect to RabbitMQ:", error.message);
-    console.log("   (Make sure RabbitMQ is running. e.g., docker run -d --name rabbitmq -p 5672:5672 rabbitmq:3)");
+      channel = await connection.createChannel();
+      console.log("🐰 Connected to RabbitMQ");
+      break; // Success
+    } catch (error) {
+      console.error(`🔴 Failed to connect to RabbitMQ: ${error.message}`);
+      retries -= 1;
+      if (retries === 0) {
+        console.log("   (Make sure RabbitMQ is running. e.g., docker run -d --name rabbitmq -p 5672:5672 rabbitmq:3)");
+      } else {
+        console.log(`⏳ Retrying RabbitMQ connection in 5 seconds... (${retries} attempts left)`);
+        await new Promise(resolve => setTimeout(resolve, 5000));
+      }
+    }
   }
 };
 

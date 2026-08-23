@@ -137,6 +137,14 @@ async def health_check():
         },
     }
 
+@app.get("/")
+@app.head("/")
+async def root():
+    """
+    Root endpoint for basic health checks (e.g., Render port checker).
+    """
+    return {"message": "CivicPulse RAG Service is running. Visit /health for details."}
+
 
 # ── Run with Uvicorn ──────────────────────────────────────────
 if __name__ == "__main__":

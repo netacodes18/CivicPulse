@@ -10,8 +10,10 @@ const startWorker = async () => {
     return;
   }
 
-  try {
-    const connection = await amqp.connect(RABBITMQ_URI);
+    let retries = 5;
+    while (retries > 0) {
+      try {
+        const connection = await amqp.connect(RABBITMQ_URI, { family: 4 });
 
     connection.on("error", (err) => {
       console.error("🔴 Worker RabbitMQ Connection Error:", err.message);
@@ -54,11 +56,22 @@ const startWorker = async () => {
         
       }
     });
+    
+    // Connection successful, break the retry loop
+    break;
 
   } catch (error) {
-    console.error("🔴 Worker Error:", error);
-    console.log("   (Make sure RabbitMQ is running or your RABBITMQ_URI is correct)");
+    console.error(`🔴 Worker Connection Error:`, error.message || error);
+    retries -= 1;
+    if (retries === 0) {
+      console.log("🔴 Worker Error: Could not connect to RabbitMQ after retries.");
+      console.log("   (Make sure RabbitMQ is running or your RABBITMQ_URI is correct)");
+    } else {
+      console.log(`⏳ Retrying worker connection in 5 seconds... (${retries} attempts left)`);
+      await new Promise(resolve => setTimeout(resolve, 5000));
+    }
   }
+}
 };
 
 startWorker();
