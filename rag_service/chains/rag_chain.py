@@ -7,7 +7,11 @@ into a production-grade conversational RAG pipeline.
 import logging
 from typing import Optional
 
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_google_genai import (
+    ChatGoogleGenerativeAI,
+    HarmCategory,
+    HarmBlockThreshold,
+)
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough, RunnableLambda
 from langchain_core.documents import Document
@@ -29,6 +33,12 @@ def _get_llm() -> ChatGoogleGenerativeAI:
         temperature=config.LLM_TEMPERATURE,
         max_output_tokens=config.LLM_MAX_TOKENS,
         convert_system_message_to_human=False,
+        safety_settings={
+            HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
+            HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
+            HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
+            HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
+        }
     )
 
 

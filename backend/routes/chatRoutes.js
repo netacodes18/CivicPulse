@@ -11,8 +11,8 @@ const express = require("express");
 const { Readable } = require("stream");
 const router = express.Router();
 
-// RAG service URL (default: localhost:8000 in development)
-const RAG_SERVICE_URL = process.env.RAG_SERVICE_URL || "http://localhost:8000";
+// RAG service URL (default: internal Render service URL in production, or localhost in development)
+const RAG_SERVICE_URL = process.env.RAG_SERVICE_URL || (process.env.NODE_ENV === "production" ? "http://civicpulse-rag:10000" : "http://localhost:8000");
 
 // Keepalive interval (ms) — send SSE comment every 15s to prevent browser timeout
 const KEEPALIVE_INTERVAL_MS = 15_000;
