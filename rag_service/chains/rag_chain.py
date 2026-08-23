@@ -7,11 +7,7 @@ into a production-grade conversational RAG pipeline.
 import logging
 from typing import Optional
 
-from langchain_google_genai import (
-    ChatGoogleGenerativeAI,
-    HarmCategory,
-    HarmBlockThreshold,
-)
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough, RunnableLambda
 from langchain_core.documents import Document
@@ -29,16 +25,9 @@ def _get_llm() -> ChatGoogleGenerativeAI:
     """Create the Google Gemini LLM instance."""
     return ChatGoogleGenerativeAI(
         model=config.LLM_MODEL,
-        google_api_key=config.GOOGLE_API_KEY,
+        api_key=config.GOOGLE_API_KEY,
         temperature=config.LLM_TEMPERATURE,
         max_output_tokens=config.LLM_MAX_TOKENS,
-        convert_system_message_to_human=False,
-        safety_settings={
-            HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
-            HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
-            HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
-            HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
-        }
     )
 
 
@@ -234,7 +223,7 @@ async def process_chat(
 
         logger.info(f"[{session_id}] Generated response ({len(full_answer)} chars).")
     except Exception as e:
-        logger.error(f"[{session_id}] LLM generation error: {e}")
+        logger.error(f"[{session_id}] LLM generation error: {e}", exc_info=True)
         error_msg = (
             "I'm sorry, I encountered an error while processing your question. "
             "Please try again in a moment. If the issue persists, you can reach "
