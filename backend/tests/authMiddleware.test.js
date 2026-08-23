@@ -2,6 +2,7 @@ const test = require("node:test");
 const assert = require("node:assert");
 const jwt = require("jsonwebtoken");
 const { authMiddleware, requireRole } = require("../middleware/authMiddleware");
+const User = require("../models/User");
 
 // Set up process.env.JWT_SECRET for testing
 process.env.JWT_SECRET = "testsecret123";
@@ -84,23 +85,49 @@ test("authMiddleware - invalid or expired token returns 401", () => {
   assert.deepStrictEqual(jsonSent, { message: "Invalid or expired token" });
 });
 
-test("authMiddleware - valid token calls next and appends user to req", () => {
+test("authMiddleware - valid token calls next and appends user to req", async () => {
   const payload = { id: "user123", role: "admin", username: "adminuser" };
   const token = jwt.sign(payload, process.env.JWT_SECRET);
   const req = { headers: { authorization: `Bearer ${token}` } };
   
   let nextCalled = false;
-  const res = {};
+  let statusSet = null;
+  let jsonSent = null;
+
+  const res = {
+    status(code) {
+      statusSet = code;
+      return {
+        json(data) {
+          jsonSent = data;
+        },
+      };
+    },
+  };
   const next = () => {
     nextCalled = true;
   };
 
-  authMiddleware(req, res, next);
+  // Mock User.findById
+  const originalFindById = User.findById;
+  User.findById = async (id) => {
+    if (id === "user123") {
+      return { _id: id, isSuspended: false };
+    }
+    return null;
+  };
 
-  assert.strictEqual(nextCalled, true);
-  assert.strictEqual(req.user.id, "user123");
-  assert.strictEqual(req.user.role, "admin");
-  assert.strictEqual(req.user.username, "adminuser");
+  try {
+    await authMiddleware(req, res, next);
+
+    assert.strictEqual(nextCalled, true);
+    assert.strictEqual(req.user.id, "user123");
+    assert.strictEqual(req.user.role, "admin");
+    assert.strictEqual(req.user.username, "adminuser");
+  } finally {
+    // Restore User.findById
+    User.findById = originalFindById;
+  }
 });
 
 test("requireRole - denies access if role does not match", () => {

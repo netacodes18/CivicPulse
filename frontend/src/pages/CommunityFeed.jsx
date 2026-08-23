@@ -36,8 +36,8 @@ const CommunityFeed = () => {
     topContributors: []
   });
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [searchTerm, _setSearchTerm] = useState("");
+  const [statusFilter, _setStatusFilter] = useState("all");
   const [upvotingId, setUpvotingId] = useState(null);
   const [activeTab, setActiveTab] = useState('Feed');
   
@@ -106,6 +106,7 @@ const CommunityFeed = () => {
 
   useEffect(() => {
     if (token) fetchData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   const handleUpvote = async (reportId) => {
@@ -140,7 +141,7 @@ const CommunityFeed = () => {
 
   const hasUpvoted = (report) => report.upvotes?.some((u) => (typeof u === "object" ? u._id : u) === user?.id);
 
-  const getStatusClasses = (status) => {
+  const _getStatusClasses = (status) => {
     switch (status) {
       case "resolved": return "text-status-resolved bg-status-resolved/10 border-status-resolved/20";
       case "in-progress": return "text-status-inprogress bg-status-inprogress/10 border-status-inprogress/20";
@@ -164,7 +165,7 @@ const CommunityFeed = () => {
     try {
       await api.post(`/api/user/groups/${groupId}/join`, {}, { headers: { Authorization: `Bearer ${token}` } });
       await fetchData();
-    } catch (err) {
+    } catch {
       alert("Failed to join group");
     }
   };
@@ -173,7 +174,7 @@ const CommunityFeed = () => {
     try {
       await api.post(`/api/user/events/${eventId}/rsvp`, {}, { headers: { Authorization: `Bearer ${token}` } });
       await fetchData();
-    } catch (err) {
+    } catch {
       alert("Failed to RSVP");
     }
   };

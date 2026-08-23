@@ -1,0 +1,16 @@
+{
+  "name": "civicpulse",
+  "version": "1.0.0",
+  "description": "CivicPulse Monorepo",
+  "private": true,
+  "scripts": {
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:rag": "cd rag_service && python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload",
+    "install:all": "cd frontend && npm install && cd ../backend && npm install && cd ../rag_service && python -m pip install -r requirements.txt",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\" \"npm run dev:rag\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  }
+}

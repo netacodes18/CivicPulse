@@ -17,6 +17,7 @@ const AnnouncementsAdmin = () => {
 
   useEffect(() => {
     fetchAnnouncements();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   const fetchAnnouncements = async () => {
@@ -39,7 +40,7 @@ const AnnouncementsAdmin = () => {
     
     setBroadcasting(true);
     try {
-      const res = await api.post("/api/admin/announcements", { title, content, targetState }, {
+      await api.post("/api/admin/announcements", { title, content, targetState }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       alert("Announcement broadcasted successfully!");

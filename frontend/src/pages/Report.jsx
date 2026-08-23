@@ -63,7 +63,7 @@ const Report = () => {
         });
         setFetchingLocation(false);
       },
-      (error) => {
+      () => {
         setLocationError(t("report_err_gps_fail") || "Failed to retrieve location. Please check your permissions.");
         setFetchingLocation(false);
       }

@@ -78,11 +78,14 @@ app.use("/api", generalLimiter);
 // API Routes
 // ===================================================
 const publicRoutes = require("./routes/publicRoutes");
+const chatRoutes = require("./routes/chatRoutes");
+const { authMiddleware } = require("./middleware/authMiddleware");
 
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/public", publicRoutes);
+app.use("/api/chat", authMiddleware, chatRoutes);
 
 // ===================================================
 // Health Check

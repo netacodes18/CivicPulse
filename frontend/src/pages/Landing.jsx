@@ -37,7 +37,7 @@ const av2 = "https://i.pravatar.cc/100?img=33";
 const av3 = "https://i.pravatar.cc/100?img=68";
 
 const Landing = () => {
-  const { user } = useContext(AuthContext);
+  const { user: _user } = useContext(AuthContext);
   const [publicStats, setPublicStats] = useState({
     totalReports: "10K+",
     resolvedReports: "8.9K+",

@@ -46,6 +46,7 @@ const AllReports = () => {
     if (token && ["admin", "super_admin", "moderator"].includes(user?.role)) {
       fetchReports();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, user]);
 
   const handleSelectAll = (e) => {

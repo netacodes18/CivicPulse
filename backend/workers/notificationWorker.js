@@ -12,6 +12,14 @@ const startWorker = async () => {
 
   try {
     const connection = await amqp.connect(RABBITMQ_URI);
+
+    connection.on("error", (err) => {
+      console.error("🔴 Worker RabbitMQ Connection Error:", err.message);
+    });
+    connection.on("close", () => {
+      console.warn("🟡 Worker RabbitMQ Connection Closed");
+    });
+
     const channel = await connection.createChannel();
 
     await channel.assertQueue(QUEUE_NAME, { durable: true });

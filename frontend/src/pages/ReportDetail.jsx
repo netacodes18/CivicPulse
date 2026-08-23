@@ -53,6 +53,7 @@ const ReportDetail = () => {
 
   useEffect(() => {
     if (token && id) fetchReport();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, id]);
 
   const handleUpvote = async () => {

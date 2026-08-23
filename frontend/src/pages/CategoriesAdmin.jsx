@@ -35,6 +35,7 @@ const CategoriesAdmin = () => {
     if (token && ["admin", "super_admin"].includes(user?.role)) {
       fetchCategories();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, user]);
 
   const handleSubmit = async (e) => {

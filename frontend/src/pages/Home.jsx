@@ -23,7 +23,7 @@ const Home = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t: _t } = useTranslation();
 
   useEffect(() => {
     const fetchDashboardData = async () => {

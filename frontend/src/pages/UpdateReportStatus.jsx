@@ -25,6 +25,7 @@ const UpdateReportStatus = () => {
 
   useEffect(() => {
     fetchReports();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   const handleStatusChange = async (reportId, newStatus, version) => {
@@ -37,7 +38,7 @@ const UpdateReportStatus = () => {
       setReports(reports.map(r => 
         r._id === reportId ? { ...r, status: newStatus, __v: r.__v + 1 } : r
       ));
-    } catch (err) {
+    } catch {
       alert("Failed to update status. Someone else might have modified it.");
       fetchReports(); // Refresh on error
     } finally {
@@ -50,79 +51,7 @@ const UpdateReportStatus = () => {
   const inProgress = reports.filter(r => r.status === "in-progress");
   const resolved = reports.filter(r => r.status === "resolved");
 
-  const Column = ({ title, icon: Icon, colorClass, bgClass, borderClass, items }) => (
-    <div className={`flex-shrink-0 w-full sm:w-[320px] md:w-[350px] bg-gray-50/50 rounded-2xl border ${borderClass} shadow-sm overflow-hidden flex flex-col h-[calc(100vh-180px)] min-h-[500px]`}>
-      <div className={`p-4 border-b ${borderClass} flex justify-between items-center ${bgClass}`}>
-        <div className="flex items-center gap-2">
-          <Icon size={18} className={colorClass} />
-          <h2 className="font-bold text-gray-900">{title}</h2>
-        </div>
-        <span className="bg-white text-gray-700 text-xs font-bold px-2.5 py-1 rounded-full shadow-sm border border-gray-100">
-          {items.length}
-        </span>
-      </div>
-      
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
-        {items.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-gray-400 opacity-60">
-            <Icon size={32} className="mb-2" />
-            <p className="text-sm font-medium">Drop empty</p>
-          </div>
-        ) : (
-          items.map(report => (
-            <div key={report._id} className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md hover:border-brand/30 transition-all relative group cursor-default">
-              {updatingId === report._id && (
-                <div className="absolute inset-0 bg-white/70 backdrop-blur-sm rounded-xl flex items-center justify-center z-10">
-                  <RefreshCw size={24} className="text-brand animate-spin" />
-                </div>
-              )}
-              
-              <div className="flex justify-between items-start mb-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 bg-gray-100 px-2 py-0.5 rounded">
-                  {report.category || "General"}
-                </span>
-                <span className="text-[10px] font-mono text-gray-400">
-                  #{report._id.substring(report._id.length - 5)}
-                </span>
-              </div>
 
-              <h3 className="font-bold text-gray-900 text-sm mb-1 leading-snug">{report.title}</h3>
-              <p className="text-xs text-gray-500 mb-4 line-clamp-2">{report.description}</p>
-              
-              <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-100">
-                <div className="text-[10px] text-gray-400 flex flex-col">
-                  <span className="font-medium text-gray-600 capitalize">{report.area || "General Area"}</span>
-                  <span>{formatDistanceToNow(new Date(report.createdAt))} ago</span>
-                </div>
-                {report.imageUrl && (
-                  <div className="w-10 h-10 rounded bg-gray-100 border border-gray-200 overflow-hidden flex-shrink-0">
-                    <img src={report.imageUrl} alt="" className="w-full h-full object-cover" />
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">Update Status</label>
-                <select
-                  value={report.status}
-                  onChange={(e) => handleStatusChange(report._id, e.target.value, report.__v)}
-                  className={`w-full text-xs font-semibold border rounded-lg py-2.5 px-3 focus:ring-2 focus:ring-brand/20 outline-none cursor-pointer transition-colors ${
-                    report.status === 'pending' ? 'bg-status-pending/5 border-status-pending/20 text-status-pending' :
-                    report.status === 'in-progress' ? 'bg-status-inprogress/5 border-status-inprogress/20 text-status-inprogress' :
-                    'bg-status-resolved/5 border-status-resolved/20 text-status-resolved'
-                  }`}
-                >
-                  <option value="pending" className="text-gray-900 font-medium">Pending Verification</option>
-                  <option value="in-progress" className="text-gray-900 font-medium">In Progress (Restoration)</option>
-                  <option value="resolved" className="text-gray-900 font-medium">Resolved & Verified</option>
-                </select>
-              </div>
-            </div>
-          ))
-        )}
-      </div>
-    </div>
-  );
 
   const [filter, setFilter] = useState("all");
 

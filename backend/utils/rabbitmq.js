@@ -14,10 +14,21 @@ const connectRabbitMQ = async () => {
 
   try {
     connection = await amqp.connect(RABBITMQ_URI);
+    
+    // Add error handlers to prevent unhandled socket errors from crashing the Node process
+    connection.on("error", (err) => {
+      console.error("🔴 RabbitMQ Connection Error:", err.message);
+    });
+    connection.on("close", () => {
+      console.warn("🟡 RabbitMQ Connection Closed");
+      channel = null;
+      connection = null;
+    });
+
     channel = await connection.createChannel();
     console.log("🐰 Connected to RabbitMQ");
   } catch (error) {
-    console.error("🔴 Failed to connect to RabbitMQ:", error);
+    console.error("🔴 Failed to connect to RabbitMQ:", error.message);
     console.log("   (Make sure RabbitMQ is running. e.g., docker run -d --name rabbitmq -p 5672:5672 rabbitmq:3)");
   }
 };

@@ -4,6 +4,7 @@ import { AuthContext } from "./context/AuthContext";
 
 import Landing from "./pages/Landing";
 import Layout from "./components/Layout";
+import ChatWidget from "./components/ChatWidget";
 import { Suspense, lazy } from "react";
 
 const Home = lazy(() => import("./pages/Home"));
@@ -36,7 +37,7 @@ const App = () => {
   const { user } = useContext(AuthContext);
 
   return (
-    <Router>
+    <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <Suspense fallback={<Loader />}>
         <Routes>
           <Route path="/signup" element={<Signup />} />
@@ -73,6 +74,8 @@ const App = () => {
             </Layout>
           } />
         </Routes>
+        {/* Global Chat Widget — visible on all pages for authenticated users */}
+        <ChatWidget />
       </Suspense>
     </Router>
   );

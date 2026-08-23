@@ -46,6 +46,7 @@ const MyReports = () => {
 
   useEffect(() => {
     if (token) fetchReports();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   const confirmDelete = async () => {
@@ -58,7 +59,7 @@ const MyReports = () => {
       setTimeout(() => setToast(null), 3000);
       setDeleteTarget(null);
       fetchReports();
-    } catch (err) {
+    } catch {
       setToast({ message: "Failed to delete report", type: "error" });
       setTimeout(() => setToast(null), 3000);
       setDeleteTarget(null);
