@@ -170,7 +170,7 @@ router.post("/reset", async (req, res) => {
 
     const response = await fetch(
       `${RAG_SERVICE_URL}/chat/reset?session_id=${encodeURIComponent(session_id)}`,
-      { method: "POST", signal: AbortSignal.timeout(5000) }
+      { method: "POST", signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS) }
     );
 
     const data = await response.json();
