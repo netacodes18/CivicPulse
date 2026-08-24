@@ -132,7 +132,7 @@ const ChatWidget = () => {
 
               // Handle server-side error events
               if (data.type === "error") {
-                throw new Error(data.message || "Stream error");
+                throw new Error(data.message || "Server returned an error");
               }
 
               setMessages((prev) =>
@@ -148,7 +148,10 @@ const ChatWidget = () => {
                 })
               );
             } catch (e) {
-              if (e.message === "Stream error" || e.message?.includes("Stream")) throw e;
+              // If it's the error we just threw, rethrow it so it breaks the stream loop
+              if (e.message !== "Unexpected end of JSON input" && !e.message.startsWith("Unexpected token")) {
+                throw e;
+              }
               console.error("Stream parse error:", e);
             }
           }
