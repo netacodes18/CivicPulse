@@ -16,7 +16,8 @@ import {
   Navigation,
   Loader2,
   FileText,
-  Share2
+  Share2,
+  Languages
 } from "lucide-react";
 
 const ReportDetail = () => {
@@ -34,6 +35,11 @@ const ReportDetail = () => {
   // Assignment state
   const [assignedDepartment, setAssignedDepartment] = useState("");
   const [assigning, setAssigning] = useState(false);
+
+  // Translation state
+  const [translatedText, setTranslatedText] = useState(null);
+  const [translating, setTranslating] = useState(false);
+  const [showTranslation, setShowTranslation] = useState(false);
 
   const fetchReport = async () => {
     try {
@@ -109,6 +115,31 @@ const ReportDetail = () => {
       alert("Failed to update assignment");
     } finally {
       setAssigning(false);
+    }
+  };
+
+  const handleTranslate = async (targetLang) => {
+    if (translating) return;
+    
+    // Toggle off if already showing
+    if (showTranslation) {
+      setShowTranslation(false);
+      return;
+    }
+
+    setTranslating(true);
+    try {
+      const res = await api.post("/api/ai/translate", 
+        { text: report.description, targetLanguage: targetLang }, 
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setTranslatedText(res.data.translated_text);
+      setShowTranslation(true);
+    } catch (err) {
+      console.error("Translation error", err);
+      alert("Failed to translate text.");
+    } finally {
+      setTranslating(false);
     }
   };
 
@@ -202,8 +233,22 @@ const ReportDetail = () => {
                 )}
               </div>
 
+              <div className="mb-4 flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-gray-900">Description</h3>
+                <button 
+                  onClick={() => handleTranslate("English")}
+                  disabled={translating}
+                  className="flex items-center gap-1.5 text-xs font-medium text-brand hover:text-brand-dark bg-brand/5 px-2.5 py-1.5 rounded-md transition-colors"
+                >
+                  {translating ? <Loader2 size={14} className="animate-spin" /> : <Languages size={14} />}
+                  {showTranslation ? "Show Original" : "Translate to English"}
+                </button>
+              </div>
+
               <div className="prose prose-sm sm:prose-base text-gray-700 max-w-none">
-                <p className="whitespace-pre-line leading-relaxed">{report.description}</p>
+                <p className="whitespace-pre-line leading-relaxed">
+                  {showTranslation ? translatedText : report.description}
+                </p>
               </div>
 
               {report.coordinates?.lat && report.coordinates?.lng && (

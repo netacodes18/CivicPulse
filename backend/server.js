@@ -2,7 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const path = require("path");
-require("dotenv").config();
+require("dotenv").config(); // loads backend/.env
 
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
@@ -79,12 +79,14 @@ app.use("/api", generalLimiter);
 // ===================================================
 const publicRoutes = require("./routes/publicRoutes");
 const chatRoutes = require("./routes/chatRoutes");
+const aiRoutes = require("./routes/aiRoutes");
 const { authMiddleware } = require("./middleware/authMiddleware");
 
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/public", publicRoutes);
+app.use("/api/ai", aiRoutes);
 app.use("/api/chat", authMiddleware, chatRoutes);
 
 // ===================================================

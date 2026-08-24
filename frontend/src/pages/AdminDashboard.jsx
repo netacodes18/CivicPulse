@@ -12,7 +12,9 @@ import {
   ClipboardList,
   Layers,
   Calendar,
-  Loader2
+  Loader2,
+  Sparkles,
+  Bot
 } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 
@@ -26,6 +28,10 @@ const AdminDashboard = () => {
   });
   const [recentReports, setRecentReports] = useState([]);
   const [loading, setLoading] = useState(true);
+  
+  const [aiSummary, setAiSummary] = useState(null);
+  const [loadingSummary, setLoadingSummary] = useState(false);
+  
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -45,6 +51,22 @@ const AdminDashboard = () => {
 
     if (token) fetchDashboardData();
   }, [token]);
+
+  const fetchAiSummary = async () => {
+    if (loadingSummary) return;
+    setLoadingSummary(true);
+    try {
+      const res = await api.get("/api/ai/dashboard-summary", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setAiSummary(res.data.summary);
+    } catch (err) {
+      console.error("Error fetching AI summary", err);
+      setAiSummary("Failed to generate AI summary. Please try again later.");
+    } finally {
+      setLoadingSummary(false);
+    }
+  };
 
   const getStatusClasses = (status) => {
     switch (status) {
@@ -103,6 +125,47 @@ const AdminDashboard = () => {
               </div>
               <p className="text-xs uppercase tracking-wider font-semibold opacity-75">Historical Average</p>
             </div>
+          </div>
+
+          {/* AI Executive Summary Card */}
+          <div className="bg-white rounded-xl border border-surface-border shadow-sm overflow-hidden">
+            <div className="px-6 py-5 border-b border-surface-border flex items-center justify-between bg-gradient-to-r from-purple-50 to-white">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-purple-100 rounded-lg">
+                  <Bot size={20} className="text-purple-600" />
+                </div>
+                <div>
+                  <h2 className="text-base font-bold text-gray-900">AI Executive Summary</h2>
+                  <p className="text-xs text-gray-500">Automated insights from recent reports</p>
+                </div>
+              </div>
+              <button
+                onClick={fetchAiSummary}
+                disabled={loadingSummary}
+                className="bg-purple-600 hover:bg-purple-700 disabled:bg-purple-300 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2 shadow-sm"
+              >
+                {loadingSummary ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : (
+                  <Sparkles size={16} />
+                )}
+                <span>{aiSummary ? "Regenerate" : "Generate Summary"}</span>
+              </button>
+            </div>
+            
+            {aiSummary && (
+              <div className="p-6">
+                <div className="prose prose-sm max-w-none text-gray-700 bg-purple-50/50 p-6 rounded-lg border border-purple-100/50">
+                  {/* Basic markdown rendering. For full markdown, use react-markdown. 
+                      Since it's a simple text block with possible newlines/bold, we can format safely. */}
+                  <div dangerouslySetInnerHTML={{ 
+                    __html: aiSummary
+                      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                      .replace(/\n/g, '<br/>') 
+                  }} />
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Grid Stats */}

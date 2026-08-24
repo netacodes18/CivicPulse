@@ -11,6 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from config import config
 from routers.chat import router as chat_router
+from routers.ai import router as ai_router
 from retrieval.vectorstore import check_vectorstore_health
 from retrieval.mongo_tool import check_mongo_health
 from memory.conversation import memory_manager
@@ -103,6 +104,7 @@ app.add_middleware(
 
 # ── Routes ────────────────────────────────────────────────────
 app.include_router(chat_router, tags=["Chat"])
+app.include_router(ai_router, tags=["AI"], prefix="/ai")
 
 
 @app.get("/health")
