@@ -52,6 +52,20 @@ router.post("/", async (req, res) => {
       username: req.user?.username || null,
     };
 
+    // Set SSE headers immediately so the browser knows it's a stream and Render load balancer doesn't timeout
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+    res.setHeader("X-Accel-Buffering", "no"); // Disable nginx buffering if behind proxy
+    res.flushHeaders();
+
+    // Start keepalive pings immediately — SSE comments (lines starting with ':') are ignored by clients
+    keepaliveTimer = setInterval(() => {
+      if (!res.writableEnded) {
+        res.write(":keepalive\\n\\n");
+      }
+    }, KEEPALIVE_INTERVAL_MS);
+
     // Forward to the RAG service
     const response = await fetch(`${RAG_SERVICE_URL}/chat`, {
       method: "POST",
@@ -73,26 +87,17 @@ router.post("/", async (req, res) => {
       clearTimeout(timeoutId);
       const errorData = await response.json().catch(() => ({}));
       console.error("❌ RAG Service Error:", response.status, errorData);
-      return res.status(response.status).json({
-        message: errorData.detail?.message || "Chat service temporarily unavailable.",
-      });
+      
+      const errorMessage = errorData.detail?.message || "Chat service temporarily unavailable.";
+      if (!res.writableEnded) {
+        res.write(`data: {"type":"error","message":${JSON.stringify(errorMessage)}}\\n\\n`);
+        res.end();
+      }
+      return;
     }
 
-    // Set SSE headers and flush immediately so the browser knows it's a stream
-    res.setHeader("Content-Type", "text/event-stream");
-    res.setHeader("Cache-Control", "no-cache");
-    res.setHeader("Connection", "keep-alive");
-    res.setHeader("X-Accel-Buffering", "no"); // Disable nginx buffering if behind proxy
-    res.flushHeaders();
-
-    // Start keepalive pings — SSE comments (lines starting with ':') are ignored by clients
-    keepaliveTimer = setInterval(() => {
-      if (!res.writableEnded) {
-        res.write(":keepalive\n\n");
-      }
-    }, KEEPALIVE_INTERVAL_MS);
-
     // Pipe the upstream SSE stream to the client with proper error handling
+
     if (response.body) {
       const readable = Readable.fromWeb(response.body);
 

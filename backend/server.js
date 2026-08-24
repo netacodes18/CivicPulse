@@ -9,6 +9,8 @@ const userRoutes = require("./routes/userRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 
 const app = express();
+app.set('trust proxy', 1); // Trust the Render load balancer for rate limiting
+
 
 // ===================================================
 // 🔥 CORS CONFIGURATION (PRODUCTION SAFE)
