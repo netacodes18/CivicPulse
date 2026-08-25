@@ -425,6 +425,10 @@ exports.suspendUser = async (req, res) => {
     if (user.role === "super_admin") {
       return res.status(403).json({ message: "Cannot suspend a super admin" });
     }
+    // Prevent regular admins from suspending other admins
+    if (user.role === "admin" && req.user.role !== "super_admin") {
+      return res.status(403).json({ message: "Only super admins can suspend another admin" });
+    }
 
     user.isSuspended = !user.isSuspended;
     await user.save();

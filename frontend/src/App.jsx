@@ -8,6 +8,7 @@ import ChatWidget from "./components/ChatWidget";
 import { Suspense, lazy } from "react";
 
 const Home = lazy(() => import("./pages/Home"));
+const Suspended = lazy(() => import("./pages/Suspended"));
 
 const Signup = lazy(() => import("./pages/Signup"));
 const Login = lazy(() => import("./pages/Login"));
@@ -42,6 +43,7 @@ const App = () => {
         <Routes>
           <Route path="/signup" element={<Signup />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/suspended" element={<Suspended />} />
           
           {/* Full unauthenticated landing page */}
           {!user && <Route path="/" element={<Landing />} />}

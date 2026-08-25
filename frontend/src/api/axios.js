@@ -29,6 +29,15 @@ api.interceptors.response.use(
       if (window.location.pathname !== '/login') {
         window.location.href = '/login';
       }
+    } else if (error.response && error.response.status === 403) {
+      // If forbidden, check if it's because the account is suspended
+      const msg = error.response.data?.message?.toLowerCase() || "";
+      if (msg.includes("suspend")) {
+        localStorage.removeItem("token");
+        if (window.location.pathname !== '/suspended') {
+          window.location.href = '/suspended';
+        }
+      }
     }
     return Promise.reject(error);
   }
