@@ -208,18 +208,52 @@ async def process_chat(
     try:
         rag_chain = CHAT_PROMPT | llm | StrOutputParser()
 
+        buffer = ""
+        in_think_block = False
+
         async for chunk in rag_chain.astream({
             "context": context_str,
             "user_context": user_context_str,
             "chat_history": chat_history,
             "question": question,  # Use original question, not condensed
         }):
-            full_answer += chunk
-            # Yield each text chunk
-            yield json.dumps({
-                "type": "chunk",
-                "content": chunk
-            })
+            buffer += chunk
+            
+            while True:
+                if not in_think_block:
+                    if "<think>" in buffer:
+                        idx = buffer.find("<think>")
+                        if idx > 0:
+                            content = buffer[:idx]
+                            full_answer += content
+                            yield json.dumps({"type": "chunk", "content": content})
+                        buffer = buffer[idx + len("<think>"):]
+                        in_think_block = True
+                    else:
+                        # Yield everything except the last 7 chars in case they are part of "<think>"
+                        if len(buffer) > 7:
+                            content = buffer[:-7]
+                            full_answer += content
+                            yield json.dumps({"type": "chunk", "content": content})
+                            buffer = buffer[-7:]
+                        break
+                else:
+                    if "</think>" in buffer:
+                        idx = buffer.find("</think>")
+                        buffer = buffer[idx + len("</think>"):]
+                        in_think_block = False
+                    else:
+                        # Keep the last 8 chars in case they are part of "</think>"
+                        if len(buffer) > 8:
+                            buffer = buffer[-8:]
+                        break
+
+        # Yield any remaining buffer after the loop ends
+        if buffer and not in_think_block:
+            # Clean up edge cases where closing tag was malformed
+            if not buffer.startswith("</think"):
+                full_answer += buffer
+                yield json.dumps({"type": "chunk", "content": buffer})
 
         logger.info(f"[{session_id}] Generated response ({len(full_answer)} chars).")
     except Exception as e:
