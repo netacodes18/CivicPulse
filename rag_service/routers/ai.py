@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 import logging
 import json
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_groq import ChatGroq
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from config import config
@@ -12,11 +12,12 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 def _get_llm():
-    return ChatGoogleGenerativeAI(
+    return ChatGroq(
         model=config.LLM_MODEL,
-        api_key=config.GOOGLE_API_KEY,
+        api_key=config.GROQ_API_KEY,
         temperature=0.2, # Lower temperature for summarization/translation
-        max_output_tokens=config.LLM_MAX_TOKENS,
+        max_tokens=config.LLM_MAX_TOKENS,
+        reasoning_format="hidden", # qwen3.6 is a reasoning model; hide <think> traces
     )
 
 class SummaryRequest(BaseModel):

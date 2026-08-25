@@ -59,6 +59,8 @@ class Config:
     def validate(cls) -> list[str]:
         """Validate required configuration. Returns list of errors."""
         errors = []
+        if not cls.GROQ_API_KEY or cls.GROQ_API_KEY == "your_groq_api_key_here":
+            errors.append("GROQ_API_KEY is not set. Get one at https://console.groq.com/keys")
         if not cls.GOOGLE_API_KEY or cls.GOOGLE_API_KEY == "your_google_api_key_here":
             errors.append("GOOGLE_API_KEY is not set. Get one at https://aistudio.google.com")
         if not cls.MONGO_URI:

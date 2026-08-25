@@ -62,7 +62,7 @@ router.post("/", async (req, res) => {
     // Start keepalive pings immediately — SSE comments (lines starting with ':') are ignored by clients
     keepaliveTimer = setInterval(() => {
       if (!res.writableEnded) {
-        res.write(":keepalive\\n\\n");
+        res.write(":keepalive\n\n");
       }
     }, KEEPALIVE_INTERVAL_MS);
 
@@ -90,7 +90,7 @@ router.post("/", async (req, res) => {
       
       const errorMessage = errorData.detail?.message || "Chat service temporarily unavailable.";
       if (!res.writableEnded) {
-        res.write(`data: {"type":"error","message":${JSON.stringify(errorMessage)}}\\n\\n`);
+        res.write(`data: {"type":"error","message":${JSON.stringify(errorMessage)}}\n\n`);
         res.end();
       }
       return;

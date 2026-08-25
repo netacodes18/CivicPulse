@@ -28,6 +28,7 @@ def _get_llm() -> ChatGroq:
         api_key=config.GROQ_API_KEY,
         temperature=config.LLM_TEMPERATURE,
         max_tokens=config.LLM_MAX_TOKENS,
+        reasoning_format="hidden",  # qwen3.6-27b is a reasoning model; hide <think> traces
     )
 
 
