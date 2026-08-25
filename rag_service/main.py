@@ -129,7 +129,7 @@ async def health_check():
         "components": {
             "llm": {
                 "model": config.LLM_MODEL,
-                "status": "configured" if config.GOOGLE_API_KEY else "not_configured",
+                "status": "configured" if config.GROQ_API_KEY else "not_configured",
             },
             "chromadb": chroma,
             "mongodb": mongo,
@@ -153,14 +153,14 @@ async def debug_test_llm():
     """Diagnostic: test if the LLM can generate a response."""
     import traceback
     try:
-        from langchain_google_genai import ChatGoogleGenerativeAI
+        from langchain_groq import ChatGroq
         from langchain_core.messages import HumanMessage
 
-        llm = ChatGoogleGenerativeAI(
+        llm = ChatGroq(
             model=config.LLM_MODEL,
-            api_key=config.GOOGLE_API_KEY,
+            api_key=config.GROQ_API_KEY,
             temperature=0.3,
-            max_output_tokens=100,
+            max_tokens=100,
         )
         result = await llm.ainvoke([HumanMessage(content="Say hello in one sentence.")])
         return {
@@ -175,8 +175,8 @@ async def debug_test_llm():
             "error_message": str(e),
             "traceback": traceback.format_exc(),
             "model": config.LLM_MODEL,
-            "api_key_set": bool(config.GOOGLE_API_KEY),
-            "api_key_prefix": config.GOOGLE_API_KEY[:8] + "..." if config.GOOGLE_API_KEY else "NOT SET",
+            "api_key_set": bool(config.GROQ_API_KEY),
+            "api_key_prefix": config.GROQ_API_KEY[:8] + "..." if config.GROQ_API_KEY else "NOT SET",
         }
 
 

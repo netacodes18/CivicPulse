@@ -15,9 +15,10 @@ load_dotenv(_env_path)
 class Config:
     """Central configuration for the RAG service."""
 
-    # ── Google AI ──────────────────────────────────────────────
+    # ── LLM (Groq) & Embeddings (Google) ──────────────────────────────
+    GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
     GOOGLE_API_KEY: str = os.getenv("GOOGLE_API_KEY", "")
-    LLM_MODEL: str = os.getenv("LLM_MODEL", "gemini-3.5-flash")
+    LLM_MODEL: str = os.getenv("LLM_MODEL", "llama3-8b-8192")
     EMBEDDING_MODEL: str = os.getenv("EMBEDDING_MODEL", "models/text-embedding-004")
     LLM_TEMPERATURE: float = float(os.getenv("LLM_TEMPERATURE", "0.3"))
     LLM_MAX_TOKENS: int = int(os.getenv("LLM_MAX_TOKENS", "2048"))

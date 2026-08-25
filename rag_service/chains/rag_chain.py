@@ -7,7 +7,7 @@ into a production-grade conversational RAG pipeline.
 import logging
 from typing import Optional
 
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_groq import ChatGroq
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough, RunnableLambda
 from langchain_core.documents import Document
@@ -21,13 +21,13 @@ from memory.conversation import memory_manager
 logger = logging.getLogger(__name__)
 
 
-def _get_llm() -> ChatGoogleGenerativeAI:
-    """Create the Google Gemini LLM instance."""
-    return ChatGoogleGenerativeAI(
+def _get_llm() -> ChatGroq:
+    """Create the Groq LLM instance."""
+    return ChatGroq(
         model=config.LLM_MODEL,
-        api_key=config.GOOGLE_API_KEY,
+        api_key=config.GROQ_API_KEY,
         temperature=config.LLM_TEMPERATURE,
-        max_output_tokens=config.LLM_MAX_TOKENS,
+        max_tokens=config.LLM_MAX_TOKENS,
     )
 
 
